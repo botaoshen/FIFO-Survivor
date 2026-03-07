@@ -3,9 +3,9 @@ import { GameEngine, GameState, UpgradeOption } from './game/Engine';
 import { Heart, Zap, Shield, FastForward, Droplet, ArrowRight, Maximize, RotateCw, Wind, Coffee, Pickaxe, Cone, PieChart, RotateCcw, Pause, Play, CircleDollarSign, Plus, Check } from 'lucide-react';
 
 const iconMap: Record<string, React.ReactNode> = {
-  'pickaxe': <img src="/prop1.png" alt="Pickaxe" className="w-6 h-6 object-contain drop-shadow-md" />,
-  'cone': <img src="/prop2.png" alt="Cone" className="w-6 h-6 object-contain drop-shadow-md" />,
-  'pie': <img src="/prop3.png" alt="Pie" className="w-6 h-6 object-contain drop-shadow-md" />,
+  'pickaxe': <img src="/prop1.png" alt="Pickaxe" className="w-6 h-6 object-contain drop-shadow-md" referrerPolicy="no-referrer" />,
+  'cone': <img src="/prop2.png" alt="Cone" className="w-6 h-6 object-contain drop-shadow-md" referrerPolicy="no-referrer" />,
+  'pie': <img src="/prop3.png" alt="Pie" className="w-6 h-6 object-contain drop-shadow-md" referrerPolicy="no-referrer" />,
   'zap': <Zap className="w-8 h-8 text-yellow-400" />,
   'maximize': <Maximize className="w-8 h-8 text-purple-400" />,
   'wind': <Wind className="w-8 h-8 text-teal-400" />,
@@ -27,7 +27,7 @@ export default function App() {
   const [upgrades, setUpgrades] = useState<UpgradeOption[]>([]);
 
   const [characters, setCharacters] = useState<CustomCharacter[]>([
-    { id: 'dave', name: 'Dave the Miner', url: '/dave_the_miner.png' },
+    { id: 'dave', name: 'Dave the Miner', url: `/api/proxy-image?url=${encodeURIComponent('https://lh3.googleusercontent.com/d/1zmny40QvoPUYX9mcCxmhsE4_BmOqtpxJ')}` },
     { id: 'bigkev', name: 'Big Kev', url: '/big_kev.png' },
     { id: 'kev', name: 'Kev', url: '/kev.png' },
     { id: 'shazza', name: 'Shazza the Cook', url: '/shazza_the_camp_cook.png' },
@@ -124,6 +124,7 @@ export default function App() {
                   src={characters.find(c => c.id === selectedCharacterId)?.url} 
                   alt="Character" 
                   className="w-full h-full object-contain bg-[#4A4A4A]"
+                  referrerPolicy="no-referrer"
                 />
               </div>
             </div>
@@ -247,7 +248,7 @@ export default function App() {
                       selectedCharacterId === char.id ? 'border-[#F4D0A4] scale-110 shadow-[0_0_25px_rgba(244,208,164,0.6)]' : 'border-[#2D1A11] hover:border-[#8B5A43]'
                     }`}
                   >
-                    <img src={char.url} alt={char.name} className="w-full h-full object-contain p-2" />
+                    <img src={char.url} alt={char.name} className="w-full h-full object-contain p-2" referrerPolicy="no-referrer" />
                   </div>
                   <span className="text-[#F4D0A4] text-sm md:text-base font-bold uppercase text-center w-32 md:w-40 leading-tight" style={{ WebkitTextStroke: '1px #2D1A11', textShadow: '0 2px 2px black' }}>
                     {char.name}

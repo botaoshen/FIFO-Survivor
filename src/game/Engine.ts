@@ -104,6 +104,7 @@ export class GameEngine {
     this.spriteSheet.onerror = () => { /* Fallback to canvas drawing */ };
 
     this.davoSpriteSheet = new Image();
+    this.davoSpriteSheet.crossOrigin = "anonymous";
     this.davoSpriteSheet.src = '/davo.png';
     this.davoSpriteSheet.onload = () => { this.davoSpritesLoaded = true; };
     this.davoSpriteSheet.onerror = () => { /* Fallback to canvas drawing */ };

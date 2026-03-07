@@ -18,6 +18,9 @@ async function startServer() {
     fs.mkdirSync(uploadDir, { recursive: true });
   }
 
+  // Serve static files from public/uploads
+  app.use("/uploads", express.static(uploadDir));
+
   // Configure multer for file uploads
   const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -41,6 +44,30 @@ async function startServer() {
 
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
+  });
+
+  app.get("/api/proxy-image", async (req, res) => {
+    const imageUrl = req.query.url as string;
+    if (!imageUrl) return res.status(400).send("URL is required");
+
+    console.log(`Proxying image: ${imageUrl}`);
+
+    try {
+      const axios = (await import("axios")).default;
+      const response = await axios.get(imageUrl, { 
+        responseType: "arraybuffer",
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+      });
+      const contentType = response.headers["content-type"];
+      console.log(`Proxy success: ${contentType}`);
+      res.setHeader("Content-Type", contentType);
+      res.send(response.data);
+    } catch (error: any) {
+      console.error("Proxy error:", error.message);
+      res.status(500).send("Failed to fetch image");
+    }
   });
 
   // Vite middleware for development
