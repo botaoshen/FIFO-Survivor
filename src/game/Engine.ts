@@ -114,7 +114,7 @@ export class GameEngine {
     this.flySpriteSheet.onerror = () => { /* Fallback to canvas drawing */ };
 
     this.groundTexture = new Image();
-    this.groundTexture.src = '/groud_texture.png';
+    this.groundTexture.src = '/ground_texture.png';
     this.groundTexture.onload = () => { 
       this.groundTextureLoaded = true; 
       this.groundPattern = this.ctx.createPattern(this.groundTexture, 'repeat');
@@ -143,6 +143,10 @@ export class GameEngine {
     this.bgm = new Audio('/bgm.mp3');
     this.bgm.loop = true;
     this.bgm.volume = 0.5;
+  }
+
+  playBGM() {
+    this.bgm.play().catch(e => console.log('Audio play failed:', e));
   }
 
   destroy() {

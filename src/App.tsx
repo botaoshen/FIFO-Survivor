@@ -27,11 +27,11 @@ export default function App() {
   const [upgrades, setUpgrades] = useState<UpgradeOption[]>([]);
 
   const [characters, setCharacters] = useState<CustomCharacter[]>([
-    { id: 'dave', name: 'Dave the Miner', url: '/Dave the miner.png' },
-    { id: 'bigkev', name: 'Big Kev', url: '/big kev.png' },
-    { id: 'kev', name: 'Kev', url: '/Kev.png' },
-    { id: 'shazza', name: 'Shazza the Cook', url: '/Shazza the camp cook.png' },
-    { id: 'steve', name: 'Steve the Safety Officer', url: '/steve the safety officer.png' },
+    { id: 'dave', name: 'Dave the Miner', url: '/dave_the_miner.png' },
+    { id: 'bigkev', name: 'Big Kev', url: '/big_kev.png' },
+    { id: 'kev', name: 'Kev', url: '/kev.png' },
+    { id: 'shazza', name: 'Shazza the Cook', url: '/shazza_the_camp_cook.png' },
+    { id: 'steve', name: 'Steve the Safety Officer', url: '/steve_the_safety_officer.png' },
   ]);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string>('dave');
 
@@ -45,8 +45,15 @@ export default function App() {
     });
     engineRef.current = engine;
 
+    const handleFirstInteraction = () => {
+      engine.playBGM();
+      window.removeEventListener('click', handleFirstInteraction);
+    };
+    window.addEventListener('click', handleFirstInteraction);
+
     return () => {
       engine.destroy();
+      window.removeEventListener('click', handleFirstInteraction);
     };
   }, []);
 
