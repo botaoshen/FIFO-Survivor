@@ -1,0 +1,5 @@
+{
+  "name": "FIFO Survivor",
+  "description": "A survivor-style action game featuring a FIFO mine worker battling hordes of outback monsters.",
+  "requestFramePermissions": []
+}
