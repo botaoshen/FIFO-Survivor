@@ -69,13 +69,28 @@ export default function App() {
     engineRef.current?.applyUpgrade(id);
   };
 
-  const handleAddCharacter = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAddCharacter = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      const newChar = { id: Date.now().toString(), name: `Miner ${characters.length}`, url };
-      setCharacters(prev => [...prev, newChar]);
-      setSelectedCharacterId(newChar.id);
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      try {
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (!response.ok) throw new Error('Upload failed');
+        
+        const data = await response.json();
+        const newChar = { id: Date.now().toString(), name: `Miner ${characters.length}`, url: data.url };
+        setCharacters(prev => [...prev, newChar]);
+        setSelectedCharacterId(newChar.id);
+      } catch (error) {
+        console.error('Error uploading character:', error);
+        alert('Failed to upload character image.');
+      }
     }
   };
 
