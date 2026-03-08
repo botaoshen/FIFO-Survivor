@@ -2,10 +2,20 @@ import React, { useEffect, useRef, useState } from 'react';
 import { GameEngine, GameState, UpgradeOption } from './game/Engine';
 import { Heart, Zap, Shield, FastForward, Droplet, ArrowRight, Maximize, RotateCw, Wind, Coffee, Pickaxe, Cone, PieChart, RotateCcw, Pause, Play, CircleDollarSign, Plus, Check } from 'lucide-react';
 
+import daveImg from './assets/dave_the_miner.png';
+import bigKevImg from './assets/big_kev.png';
+import kevImg from './assets/kev.png';
+import shazzaImg from './assets/shazza_the_camp_cook.png';
+import steveImg from './assets/steve_the_safety_officer.png';
+import dashBg from './assets/dashbackground.png';
+import prop1 from './assets/prop1.png';
+import prop2 from './assets/prop2.png';
+import prop3 from './assets/prop3.png';
+
 const iconMap: Record<string, React.ReactNode> = {
-  'pickaxe': <img src="/prop1.png" alt="Pickaxe" className="w-6 h-6 object-contain drop-shadow-md" />,
-  'cone': <img src="/prop2.png" alt="Cone" className="w-6 h-6 object-contain drop-shadow-md" />,
-  'pie': <img src="/prop3.png" alt="Pie" className="w-6 h-6 object-contain drop-shadow-md" />,
+  'pickaxe': <img src={prop1} alt="Pickaxe" className="w-6 h-6 object-contain drop-shadow-md" />,
+  'cone': <img src={prop2} alt="Cone" className="w-6 h-6 object-contain drop-shadow-md" />,
+  'pie': <img src={prop3} alt="Pie" className="w-6 h-6 object-contain drop-shadow-md" />,
   'zap': <Zap className="w-8 h-8 text-yellow-400" />,
   'maximize': <Maximize className="w-8 h-8 text-purple-400" />,
   'wind': <Wind className="w-8 h-8 text-teal-400" />,
@@ -27,11 +37,11 @@ export default function App() {
   const [upgrades, setUpgrades] = useState<UpgradeOption[]>([]);
 
   const [characters, setCharacters] = useState<CustomCharacter[]>([
-    { id: 'dave', name: 'Dave the Miner', url: '/dave_the_miner.png' },
-    { id: 'bigkev', name: 'Big Kev', url: '/big_kev.png' },
-    { id: 'kev', name: 'Kev', url: '/kev.png' },
-    { id: 'shazza', name: 'Shazza the Cook', url: '/shazza_the_camp_cook.png' },
-    { id: 'steve', name: 'Steve the Safety Officer', url: '/steve_the_safety_officer.png' },
+    { id: 'dave', name: 'Dave the Miner', url: daveImg },
+    { id: 'bigkev', name: 'Big Kev', url: bigKevImg },
+    { id: 'kev', name: 'Kev', url: kevImg },
+    { id: 'shazza', name: 'Shazza the Cook', url: shazzaImg },
+    { id: 'steve', name: 'Steve the Safety Officer', url: steveImg },
   ]);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string>('dave');
 
@@ -190,7 +200,7 @@ export default function App() {
       {gameState === 'menu' && (
         <div 
           className="absolute inset-0 flex flex-col items-center justify-between z-50 bg-cover bg-center py-12 px-4 bg-[#b34d36]"
-          style={{ backgroundImage: `url('/dashbackground.png')` }}
+          style={{ backgroundImage: `url(${dashBg})` }}
         >
           {/* Top Section: Title & Subtitle */}
           <div className="flex flex-col items-center mt-8">

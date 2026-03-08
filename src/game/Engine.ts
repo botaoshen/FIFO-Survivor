@@ -1,3 +1,22 @@
+import flyImg from '../assets/fly.png';
+import groundImg from '../assets/ground_texture.png';
+import daveImg from '../assets/dave_the_miner.png';
+
+import enemy1 from '../assets/enemy1.png';
+import enemy2 from '../assets/enemy2.png';
+import enemy3 from '../assets/enemy3.png';
+import enemy4 from '../assets/enemy4.png';
+import enemy5 from '../assets/enemy5.png';
+import enemy6 from '../assets/enemy6.png';
+import enemy7 from '../assets/enemy7.png';
+
+import prop1 from '../assets/prop1.png';
+import prop2 from '../assets/prop2.png';
+import prop3 from '../assets/prop3.png';
+import prop4 from '../assets/prop4.png';
+import prop5 from '../assets/prop5.png';
+import bgmAudio from '../assets/bgm.mp3';
+
 export type GameState = 'menu' | 'playing' | 'levelup' | 'gameover' | 'paused';
 
 interface SpriteDef {
@@ -104,35 +123,37 @@ export class GameEngine {
     this.spriteSheet.onload = () => { this.spritesLoaded = true; };
 
     this.davoSpriteSheet = new Image();
-    // Use dave_the_miner.png as the default instead of missing davo.png
-    this.davoSpriteSheet.src = '/dave_the_miner.png';
+    // Use imported daveImg as the default
+    this.davoSpriteSheet.src = daveImg;
     this.isSingleImageDavo = true; // dave_the_miner.png is a single image
     this.davoSpriteSheet.onload = () => { this.davoSpritesLoaded = true; };
 
     this.flySpriteSheet = new Image();
-    this.flySpriteSheet.src = '/fly.png';
+    this.flySpriteSheet.src = flyImg;
     this.flySpriteSheet.onload = () => { this.flySpritesLoaded = true; };
     this.flySpriteSheet.onerror = () => { /* Fallback to canvas drawing */ };
 
     this.groundTexture = new Image();
-    this.groundTexture.src = '/ground_texture.png';
+    this.groundTexture.src = groundImg;
     this.groundTexture.onload = () => { 
       this.groundTextureLoaded = true; 
       this.groundPattern = this.ctx.createPattern(this.groundTexture, 'repeat');
     };
     this.groundTexture.onerror = () => { /* Fallback to canvas drawing */ };
 
-    for (let i = 1; i <= 5; i++) {
+    const propSrcs = [prop1, prop2, prop3, prop4, prop5];
+    for (let i = 0; i < 5; i++) {
       const img = new Image();
-      img.src = `/prop${i}.png`;
-      img.onload = () => { this.propsLoaded[i - 1] = true; };
+      img.src = propSrcs[i];
+      img.onload = () => { this.propsLoaded[i] = true; };
       this.propImages.push(img);
     }
 
-    for (let i = 1; i <= 7; i++) {
+    const enemySrcs = [enemy1, enemy2, enemy3, enemy4, enemy5, enemy6, enemy7];
+    for (let i = 0; i < 7; i++) {
       const img = new Image();
-      img.src = `/enemy${i}.png`;
-      img.onload = () => { this.enemiesLoaded[i - 1] = true; };
+      img.src = enemySrcs[i];
+      img.onload = () => { this.enemiesLoaded[i] = true; };
       this.enemyImages.push(img);
     }
 
@@ -140,8 +161,8 @@ export class GameEngine {
     this.handleResize = this.handleResize.bind(this); this.loop = this.loop.bind(this);
     window.addEventListener('keydown', this.handleKeyDown); window.addEventListener('keyup', this.handleKeyUp);
     window.addEventListener('resize', this.handleResize); this.handleResize();
-
-    this.bgm = new Audio('/bgm.mp3');
+    
+    this.bgm = new Audio(bgmAudio);
     this.bgm.loop = true;
     this.bgm.volume = 0.5;
   }
