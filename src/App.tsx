@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GameEngine, GameState, UpgradeOption } from './game/Engine';
-import { Heart, Zap, Shield, FastForward, Droplet, ArrowRight, Maximize, RotateCw, Wind, Coffee, Pickaxe, Cone, PieChart, RotateCcw, Pause, Play, CircleDollarSign, Plus, Check, Volume2, VolumeX } from 'lucide-react';
+import { Heart, Zap, Shield, FastForward, Droplet, ArrowRight, Maximize, RotateCw, Wind, Coffee, Pickaxe, Cone, PieChart, RotateCcw, Pause, Play, CircleDollarSign, Plus, Check } from 'lucide-react';
 
 const iconMap: Record<string, React.ReactNode> = {
-  'pickaxe': <img src="/prop1.png" alt="Pickaxe" className="w-6 h-6 object-contain drop-shadow-md" referrerPolicy="no-referrer" />,
-  'cone': <img src="/prop2.png" alt="Cone" className="w-6 h-6 object-contain drop-shadow-md" referrerPolicy="no-referrer" />,
-  'pie': <img src="/prop3.png" alt="Pie" className="w-6 h-6 object-contain drop-shadow-md" referrerPolicy="no-referrer" />,
+  'pickaxe': <img src="/prop1.png" alt="Pickaxe" className="w-6 h-6 object-contain drop-shadow-md" />,
+  'cone': <img src="/prop2.png" alt="Cone" className="w-6 h-6 object-contain drop-shadow-md" />,
+  'pie': <img src="/prop3.png" alt="Pie" className="w-6 h-6 object-contain drop-shadow-md" />,
   'zap': <Zap className="w-8 h-8 text-yellow-400" />,
   'maximize': <Maximize className="w-8 h-8 text-purple-400" />,
   'wind': <Wind className="w-8 h-8 text-teal-400" />,
@@ -27,15 +27,13 @@ export default function App() {
   const [upgrades, setUpgrades] = useState<UpgradeOption[]>([]);
 
   const [characters, setCharacters] = useState<CustomCharacter[]>([
-    { id: 'dave', name: 'Dave the Miner', url: `/api/proxy?url=${encodeURIComponent('https://lh3.googleusercontent.com/d/1zmny40QvoPUYX9mcCxmhsE4_BmOqtpxJ')}` },
+    { id: 'dave', name: 'Dave the Miner', url: '/dave_the_miner.png' },
     { id: 'bigkev', name: 'Big Kev', url: '/big_kev.png' },
     { id: 'kev', name: 'Kev', url: '/kev.png' },
     { id: 'shazza', name: 'Shazza the Cook', url: '/shazza_the_camp_cook.png' },
     { id: 'steve', name: 'Steve the Safety Officer', url: '/steve_the_safety_officer.png' },
   ]);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string>('dave');
-  const [musicVolume, setMusicVolume] = useState(0.5);
-  const [isMusicOn, setIsMusicOn] = useState(true);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -46,10 +44,6 @@ export default function App() {
       onLevelUp: setUpgrades,
     });
     engineRef.current = engine;
-    
-    // Initialize music state
-    engine.setBGMVolume(musicVolume);
-    engine.toggleBGM(isMusicOn);
 
     const handleFirstInteraction = () => {
       engine.playBGM();
@@ -75,47 +69,13 @@ export default function App() {
     engineRef.current?.applyUpgrade(id);
   };
 
-  const toggleMusic = () => {
-    const newState = !isMusicOn;
-    setIsMusicOn(newState);
-    engineRef.current?.toggleBGM(newState);
-  };
-
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = parseFloat(e.target.value);
-    setMusicVolume(val);
-    engineRef.current?.setBGMVolume(val);
-    if (val > 0 && !isMusicOn) {
-      setIsMusicOn(true);
-      engineRef.current?.toggleBGM(true);
-    } else if (val === 0 && isMusicOn) {
-      setIsMusicOn(false);
-      engineRef.current?.toggleBGM(false);
-    }
-  };
-
-  const handleAddCharacter = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAddCharacter = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      try {
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-        });
-        
-        if (!response.ok) throw new Error('Upload failed');
-        
-        const data = await response.json();
-        const newChar = { id: Date.now().toString(), name: `Miner ${characters.length}`, url: data.url };
-        setCharacters(prev => [...prev, newChar]);
-        setSelectedCharacterId(newChar.id);
-      } catch (error) {
-        console.error('Error uploading character:', error);
-        alert('Failed to upload character image.');
-      }
+      const url = URL.createObjectURL(file);
+      const newChar = { id: Date.now().toString(), name: `Miner ${characters.length}`, url };
+      setCharacters(prev => [...prev, newChar]);
+      setSelectedCharacterId(newChar.id);
     }
   };
 
@@ -149,7 +109,6 @@ export default function App() {
                   src={characters.find(c => c.id === selectedCharacterId)?.url} 
                   alt="Character" 
                   className="w-full h-full object-contain bg-[#4A4A4A]"
-                  referrerPolicy="no-referrer"
                 />
               </div>
             </div>
@@ -163,8 +122,8 @@ export default function App() {
             </div>
           </div>
 
-          {/* Middle Section: XP Bar & Music Controls */}
-          <div className="flex-1 max-w-lg mx-4 flex flex-col items-center gap-2">
+          {/* Middle Section: XP Bar */}
+          <div className="flex-1 max-w-lg mx-4">
             <div className="w-full h-10 bg-[#4A2F1D] rounded-xl border-4 border-[#2D1A11] relative overflow-hidden shadow-lg flex items-center p-1">
               <div 
                 className="h-full bg-[#f1c40f] rounded-sm transition-all duration-200"
@@ -173,25 +132,6 @@ export default function App() {
               <div className="absolute inset-0 flex items-center justify-center text-[#F4D0A4] font-bold drop-shadow-md uppercase tracking-wide" style={{ WebkitTextStroke: '1px #2D1A11' }}>
                 LVL {stats.level} - {stats.xp} / {stats.xpToNext}
               </div>
-            </div>
-            
-            {/* Music Controls */}
-            <div className="flex items-center gap-3 bg-[#2D1A11]/60 backdrop-blur-sm px-4 py-1.5 rounded-full pointer-events-auto border border-[#F4D0A4]/20">
-              <button 
-                onClick={toggleMusic}
-                className="text-[#F4D0A4] hover:scale-110 transition-transform"
-              >
-                {isMusicOn && musicVolume > 0 ? <Volume2 size={18} /> : <VolumeX size={18} />}
-              </button>
-              <input 
-                type="range" 
-                min="0" 
-                max="1" 
-                step="0.01" 
-                value={musicVolume} 
-                onChange={handleVolumeChange}
-                className="w-24 h-1.5 bg-[#4A2F1D] rounded-lg appearance-none cursor-pointer accent-[#F4D0A4]"
-              />
             </div>
           </div>
 
@@ -292,7 +232,7 @@ export default function App() {
                       selectedCharacterId === char.id ? 'border-[#F4D0A4] scale-110 shadow-[0_0_25px_rgba(244,208,164,0.6)]' : 'border-[#2D1A11] hover:border-[#8B5A43]'
                     }`}
                   >
-                    <img src={char.url} alt={char.name} className="w-full h-full object-contain p-2" referrerPolicy="no-referrer" />
+                    <img src={char.url} alt={char.name} className="w-full h-full object-contain p-2" />
                   </div>
                   <span className="text-[#F4D0A4] text-sm md:text-base font-bold uppercase text-center w-32 md:w-40 leading-tight" style={{ WebkitTextStroke: '1px #2D1A11', textShadow: '0 2px 2px black' }}>
                     {char.name}
