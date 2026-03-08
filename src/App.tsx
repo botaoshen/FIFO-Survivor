@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GameEngine, GameState, UpgradeOption } from './game/Engine';
-import { Heart, Zap, Shield, FastForward, Droplet, ArrowRight, Maximize, RotateCw, Wind, Coffee, Pickaxe, Cone, PieChart, RotateCcw, Pause, Play, CircleDollarSign, Plus, Check } from 'lucide-react';
+import { Heart, Zap, Shield, FastForward, Droplet, ArrowRight, Maximize, RotateCw, Wind, Coffee, Pickaxe, Cone, PieChart, RotateCcw, Pause, Play, CircleDollarSign, Plus, Check, Volume2, VolumeX } from 'lucide-react';
 
 const iconMap: Record<string, React.ReactNode> = {
   'pickaxe': <img src="/prop1.png" alt="Pickaxe" className="w-6 h-6 object-contain drop-shadow-md" referrerPolicy="no-referrer" />,
@@ -34,6 +34,8 @@ export default function App() {
     { id: 'steve', name: 'Steve the Safety Officer', url: '/steve_the_safety_officer.png' },
   ]);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string>('dave');
+  const [musicVolume, setMusicVolume] = useState(0.5);
+  const [isMusicOn, setIsMusicOn] = useState(true);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -44,6 +46,10 @@ export default function App() {
       onLevelUp: setUpgrades,
     });
     engineRef.current = engine;
+    
+    // Initialize music state
+    engine.setBGMVolume(musicVolume);
+    engine.toggleBGM(isMusicOn);
 
     const handleFirstInteraction = () => {
       engine.playBGM();
@@ -67,6 +73,25 @@ export default function App() {
 
   const selectUpgrade = (id: string) => {
     engineRef.current?.applyUpgrade(id);
+  };
+
+  const toggleMusic = () => {
+    const newState = !isMusicOn;
+    setIsMusicOn(newState);
+    engineRef.current?.toggleBGM(newState);
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = parseFloat(e.target.value);
+    setMusicVolume(val);
+    engineRef.current?.setBGMVolume(val);
+    if (val > 0 && !isMusicOn) {
+      setIsMusicOn(true);
+      engineRef.current?.toggleBGM(true);
+    } else if (val === 0 && isMusicOn) {
+      setIsMusicOn(false);
+      engineRef.current?.toggleBGM(false);
+    }
   };
 
   const handleAddCharacter = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,8 +163,8 @@ export default function App() {
             </div>
           </div>
 
-          {/* Middle Section: XP Bar */}
-          <div className="flex-1 max-w-lg mx-4">
+          {/* Middle Section: XP Bar & Music Controls */}
+          <div className="flex-1 max-w-lg mx-4 flex flex-col items-center gap-2">
             <div className="w-full h-10 bg-[#4A2F1D] rounded-xl border-4 border-[#2D1A11] relative overflow-hidden shadow-lg flex items-center p-1">
               <div 
                 className="h-full bg-[#f1c40f] rounded-sm transition-all duration-200"
@@ -148,6 +173,25 @@ export default function App() {
               <div className="absolute inset-0 flex items-center justify-center text-[#F4D0A4] font-bold drop-shadow-md uppercase tracking-wide" style={{ WebkitTextStroke: '1px #2D1A11' }}>
                 LVL {stats.level} - {stats.xp} / {stats.xpToNext}
               </div>
+            </div>
+            
+            {/* Music Controls */}
+            <div className="flex items-center gap-3 bg-[#2D1A11]/60 backdrop-blur-sm px-4 py-1.5 rounded-full pointer-events-auto border border-[#F4D0A4]/20">
+              <button 
+                onClick={toggleMusic}
+                className="text-[#F4D0A4] hover:scale-110 transition-transform"
+              >
+                {isMusicOn && musicVolume > 0 ? <Volume2 size={18} /> : <VolumeX size={18} />}
+              </button>
+              <input 
+                type="range" 
+                min="0" 
+                max="1" 
+                step="0.01" 
+                value={musicVolume} 
+                onChange={handleVolumeChange}
+                className="w-24 h-1.5 bg-[#4A2F1D] rounded-lg appearance-none cursor-pointer accent-[#F4D0A4]"
+              />
             </div>
           </div>
 

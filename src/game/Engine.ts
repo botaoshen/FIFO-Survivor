@@ -75,6 +75,7 @@ export class GameEngine {
   camera = { x: 0, y: 0 }; time: number = 0; enemySpawnTimer: number = 0; enemySpawnRate: number = 2.0;
   bossSpawnTimer: number = 60;
   difficultyMultiplier: number = 1.0; nextId = 1;
+  musicEnabled: boolean = true;
 
   spriteSheet: HTMLImageElement;
   spritesLoaded: boolean = false;
@@ -148,7 +149,22 @@ export class GameEngine {
   }
 
   playBGM() {
-    this.bgm.play().catch(e => console.log('Audio play failed:', e));
+    if (this.musicEnabled) {
+      this.bgm.play().catch(e => console.log('Audio play failed:', e));
+    }
+  }
+
+  setBGMVolume(volume: number) {
+    this.bgm.volume = volume;
+  }
+
+  toggleBGM(on: boolean) {
+    this.musicEnabled = on;
+    if (on) {
+      this.bgm.play().catch(e => console.log('Audio play failed:', e));
+    } else {
+      this.bgm.pause();
+    }
   }
 
   destroy() {
@@ -194,7 +210,9 @@ export class GameEngine {
     
     // Attempt to play BGM
     this.bgm.currentTime = 0;
-    this.bgm.play().catch(e => console.log('Audio play failed:', e));
+    if (this.musicEnabled) {
+      this.bgm.play().catch(e => console.log('Audio play failed:', e));
+    }
 
     this.player = { pos: { x: 0, y: 0 }, hp: 100, maxHp: 100, speed: 200, radius: 40, xp: 0, level: 1, xpToNext: 30, gems: 0, pies: 0, damageMultiplier: 1, facing: 'down', isMoving: false, frame: 0, isAttacking: false, attackTimer: 0, characterId };
     this.weapons = {
@@ -227,7 +245,9 @@ export class GameEngine {
   resume() { 
     this.lastTime = performance.now(); 
     this.animationId = requestAnimationFrame(this.loop); 
-    this.bgm.play().catch(e => console.log('Audio play failed:', e));
+    if (this.musicEnabled) {
+      this.bgm.play().catch(e => console.log('Audio play failed:', e));
+    }
   }
   
   togglePause() {
