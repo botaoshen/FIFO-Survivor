@@ -18,6 +18,9 @@ async function startServer() {
     fs.mkdirSync(uploadDir, { recursive: true });
   }
 
+  // Serve static files from public directory
+  app.use(express.static(path.join(__dirname, "public")));
+  
   // Serve static files from public/uploads
   app.use("/uploads", express.static(uploadDir));
 
