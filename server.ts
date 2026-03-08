@@ -46,15 +46,15 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
-  app.get("/api/proxy-image", async (req, res) => {
-    const imageUrl = req.query.url as string;
-    if (!imageUrl) return res.status(400).send("URL is required");
+  app.get("/api/proxy", async (req, res) => {
+    const targetUrl = req.query.url as string;
+    if (!targetUrl) return res.status(400).send("URL is required");
 
-    console.log(`Proxying image: ${imageUrl}`);
+    console.log(`Proxying: ${targetUrl}`);
 
     try {
       const axios = (await import("axios")).default;
-      const response = await axios.get(imageUrl, { 
+      const response = await axios.get(targetUrl, { 
         responseType: "arraybuffer",
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
@@ -66,7 +66,7 @@ async function startServer() {
       res.send(response.data);
     } catch (error: any) {
       console.error("Proxy error:", error.message);
-      res.status(500).send("Failed to fetch image");
+      res.status(500).send("Failed to fetch resource");
     }
   });
 

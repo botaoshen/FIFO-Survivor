@@ -27,7 +27,7 @@ export default function App() {
   const [upgrades, setUpgrades] = useState<UpgradeOption[]>([]);
 
   const [characters, setCharacters] = useState<CustomCharacter[]>([
-    { id: 'dave', name: 'Dave the Miner', url: `/api/proxy-image?url=${encodeURIComponent('https://lh3.googleusercontent.com/d/1zmny40QvoPUYX9mcCxmhsE4_BmOqtpxJ')}` },
+    { id: 'dave', name: 'Dave the Miner', url: `/api/proxy?url=${encodeURIComponent('https://lh3.googleusercontent.com/d/1zmny40QvoPUYX9mcCxmhsE4_BmOqtpxJ')}` },
     { id: 'bigkev', name: 'Big Kev', url: '/big_kev.png' },
     { id: 'kev', name: 'Kev', url: '/kev.png' },
     { id: 'shazza', name: 'Shazza the Cook', url: '/shazza_the_camp_cook.png' },
