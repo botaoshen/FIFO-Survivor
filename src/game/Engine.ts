@@ -1,6 +1,6 @@
 import flyImg from '../assets/fly.png';
 import groundImg from '../assets/ground_texture.png';
-import daveImg from '../assets/dave_the_miner.png';
+const daveImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772965522/Dave_the_miner_akwikr.png';
 
 import enemy1 from '../assets/enemy1.png';
 import enemy2 from '../assets/enemy2.png';

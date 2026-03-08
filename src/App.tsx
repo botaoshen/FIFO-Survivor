@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { GameEngine, GameState, UpgradeOption } from './game/Engine';
 import { Heart, Zap, Shield, FastForward, Droplet, ArrowRight, Maximize, RotateCw, Wind, Coffee, Pickaxe, Cone, PieChart, RotateCcw, Pause, Play, CircleDollarSign, Plus, Check } from 'lucide-react';
 
-import daveImg from './assets/dave_the_miner.png';
+const daveImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772965522/Dave_the_miner_akwikr.png';
 import bigKevImg from './assets/big_kev.png';
 import kevImg from './assets/kev.png';
 import shazzaImg from './assets/shazza_the_camp_cook.png';
