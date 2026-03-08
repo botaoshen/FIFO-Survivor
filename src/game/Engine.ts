@@ -99,14 +99,15 @@ export class GameEngine {
     this.canvas = canvas; this.ctx = canvas.getContext('2d')!; this.callbacks = callbacks;
     
     this.spriteSheet = new Image();
-    this.spriteSheet.src = '/sprites.png';
+    // sprites.png is missing, we rely on canvas fallback drawing for gems/pies
+    // this.spriteSheet.src = '/sprites.png';
     this.spriteSheet.onload = () => { this.spritesLoaded = true; };
-    this.spriteSheet.onerror = () => { /* Fallback to canvas drawing */ };
 
     this.davoSpriteSheet = new Image();
-    this.davoSpriteSheet.src = '/davo.png';
+    // Use dave_the_miner.png as the default instead of missing davo.png
+    this.davoSpriteSheet.src = '/dave_the_miner.png';
+    this.isSingleImageDavo = true; // dave_the_miner.png is a single image
     this.davoSpriteSheet.onload = () => { this.davoSpritesLoaded = true; };
-    this.davoSpriteSheet.onerror = () => { /* Fallback to canvas drawing */ };
 
     this.flySpriteSheet = new Image();
     this.flySpriteSheet.src = '/fly.png';
@@ -190,8 +191,7 @@ export class GameEngine {
     cancelAnimationFrame(this.animationId);
     this.state = 'playing'; this.callbacks.onStateChange(this.state);
     
-    // Attempt to play BGM
-    this.bgm.currentTime = 0;
+    // Attempt to play BGM if not already playing (don't reset currentTime)
     this.bgm.play().catch(e => console.log('Audio play failed:', e));
 
     this.player = { pos: { x: 0, y: 0 }, hp: 100, maxHp: 100, speed: 200, radius: 40, xp: 0, level: 1, xpToNext: 30, gems: 0, pies: 0, damageMultiplier: 1, facing: 'down', isMoving: false, frame: 0, isAttacking: false, attackTimer: 0, characterId };
@@ -398,7 +398,7 @@ export class GameEngine {
         if (this.player.hp <= 0) { 
           this.state = 'gameover'; 
           this.callbacks.onStateChange(this.state); 
-          this.bgm.pause();
+          // Keep BGM playing for game over screen (dashboard stage)
           return; 
         }
       }
