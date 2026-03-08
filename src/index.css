@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+body {
+  touch-action: none;
+  overflow: hidden;
+}
+
 @layer utilities {
   .scrollbar-hide {
     -ms-overflow-style: none;  /* IE and Edge */

@@ -76,6 +76,12 @@ export class GameEngine {
   lastTime: number = 0; animationId: number = 0; keys: { [key: string]: boolean } = {};
   state: GameState = 'menu';
 
+  // Touch controls
+  touchActive: boolean = false;
+  touchStart: Vector2 = { x: 0, y: 0 };
+  touchCurrent: Vector2 = { x: 0, y: 0 };
+  touchId: number | null = null;
+
   player = {
     pos: { x: 0, y: 0 }, hp: 100, maxHp: 100, speed: 200, radius: 25,
     xp: 0, level: 1, xpToNext: 30, gems: 0, pies: 0, damageMultiplier: 1,
@@ -159,9 +165,18 @@ export class GameEngine {
 
     this.handleKeyDown = this.handleKeyDown.bind(this); this.handleKeyUp = this.handleKeyUp.bind(this);
     this.handleResize = this.handleResize.bind(this); this.loop = this.loop.bind(this);
+    this.handleTouchStart = this.handleTouchStart.bind(this);
+    this.handleTouchMove = this.handleTouchMove.bind(this);
+    this.handleTouchEnd = this.handleTouchEnd.bind(this);
+
     window.addEventListener('keydown', this.handleKeyDown); window.addEventListener('keyup', this.handleKeyUp);
     window.addEventListener('resize', this.handleResize); this.handleResize();
     
+    window.addEventListener('touchstart', this.handleTouchStart, { passive: false });
+    window.addEventListener('touchmove', this.handleTouchMove, { passive: false });
+    window.addEventListener('touchend', this.handleTouchEnd, { passive: false });
+    window.addEventListener('touchcancel', this.handleTouchEnd, { passive: false });
+
     this.bgm = new Audio(bgmAudio);
     this.bgm.loop = true;
     this.bgm.volume = 0.5;
@@ -174,6 +189,10 @@ export class GameEngine {
   destroy() {
     window.removeEventListener('keydown', this.handleKeyDown); window.removeEventListener('keyup', this.handleKeyUp);
     window.removeEventListener('resize', this.handleResize); cancelAnimationFrame(this.animationId);
+    window.removeEventListener('touchstart', this.handleTouchStart);
+    window.removeEventListener('touchmove', this.handleTouchMove);
+    window.removeEventListener('touchend', this.handleTouchEnd);
+    window.removeEventListener('touchcancel', this.handleTouchEnd);
   }
 
   setCustomSpriteSheet(type: 'sprites' | 'davo' | 'single_davo', url: string) {
@@ -206,6 +225,41 @@ export class GameEngine {
 
   handleKeyDown(e: KeyboardEvent) { this.keys[e.key.toLowerCase()] = true; }
   handleKeyUp(e: KeyboardEvent) { this.keys[e.key.toLowerCase()] = false; }
+  
+  handleTouchStart(e: TouchEvent) {
+    if (this.state !== 'playing') return;
+    // Prevent scrolling/zooming
+    if (e.target === this.canvas) e.preventDefault();
+    
+    const touch = e.changedTouches[0];
+    this.touchId = touch.identifier;
+    this.touchStart = { x: touch.clientX, y: touch.clientY };
+    this.touchCurrent = { x: touch.clientX, y: touch.clientY };
+    this.touchActive = true;
+  }
+
+  handleTouchMove(e: TouchEvent) {
+    if (!this.touchActive || this.state !== 'playing') return;
+    if (e.target === this.canvas) e.preventDefault();
+
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      const touch = e.changedTouches[i];
+      if (touch.identifier === this.touchId) {
+        this.touchCurrent = { x: touch.clientX, y: touch.clientY };
+      }
+    }
+  }
+
+  handleTouchEnd(e: TouchEvent) {
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      const touch = e.changedTouches[i];
+      if (touch.identifier === this.touchId) {
+        this.touchActive = false;
+        this.touchId = null;
+      }
+    }
+  }
+
   handleResize() { this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight; }
 
   start(characterId: string = 'dave') {
@@ -281,6 +335,17 @@ export class GameEngine {
     if (this.keys['s'] || this.keys['arrowdown']) dy += 1;
     if (this.keys['a'] || this.keys['arrowleft']) dx -= 1;
     if (this.keys['d'] || this.keys['arrowright']) dx += 1;
+
+    // Touch movement
+    if (this.touchActive && dx === 0 && dy === 0) {
+      const tdx = this.touchCurrent.x - this.touchStart.x;
+      const tdy = this.touchCurrent.y - this.touchStart.y;
+      const dist = Math.sqrt(tdx * tdx + tdy * tdy);
+      if (dist > 10) { // Deadzone
+        dx = tdx / dist;
+        dy = tdy / dist;
+      }
+    }
     
     this.player.isMoving = (dx !== 0 || dy !== 0);
     if (this.player.isMoving) {
@@ -907,5 +972,38 @@ export class GameEngine {
     }
 
     ctx.restore();
+
+    // Draw Joystick
+    if (this.touchActive) {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset to screen space
+      
+      const baseRadius = 60;
+      const stickRadius = 30;
+      
+      // Base
+      ctx.beginPath();
+      ctx.arc(this.touchStart.x, this.touchStart.y, baseRadius, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      
+      // Stick
+      const dx = this.touchCurrent.x - this.touchStart.x;
+      const dy = this.touchCurrent.y - this.touchStart.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const moveX = dist > baseRadius ? (dx / dist) * baseRadius : dx;
+      const moveY = dist > baseRadius ? (dy / dist) * baseRadius : dy;
+      
+      ctx.beginPath();
+      ctx.arc(this.touchStart.x + moveX, this.touchStart.y + moveY, stickRadius, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.fill();
+      ctx.stroke();
+      
+      ctx.restore();
+    }
   }
 }
