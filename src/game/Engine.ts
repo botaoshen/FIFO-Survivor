@@ -1,21 +1,21 @@
-import flyImg from '../assets/fly.png';
-import groundImg from '../assets/ground_texture.png';
+const flyImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968324/fly_mrzgq4.png';
+const groundImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968886/ground_texture_klpu1s.png';
 const daveImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772965522/Dave_the_miner_akwikr.png';
 
-import enemy1 from '../assets/enemy1.png';
-import enemy2 from '../assets/enemy2.png';
-import enemy3 from '../assets/enemy3.png';
-import enemy4 from '../assets/enemy4.png';
-import enemy5 from '../assets/enemy5.png';
-import enemy6 from '../assets/enemy6.png';
-import enemy7 from '../assets/enemy7.png';
+const enemy1 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968321/enemy1_psbc1j.png';
+const enemy2 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968321/enemy2_widf0y.png';
+const enemy3 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968321/enemy3_vhtmw7.png';
+const enemy4 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968322/enemy4_klnfmk.png';
+const enemy5 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968322/enemy5_s2vmra.png';
+const enemy6 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968323/enemy6_lcbgz7.png';
+const enemy7 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968324/enemy7_fbqunu.png';
 
-import prop1 from '../assets/prop1.png';
-import prop2 from '../assets/prop2.png';
-import prop3 from '../assets/prop3.png';
-import prop4 from '../assets/prop4.png';
-import prop5 from '../assets/prop5.png';
-import bgmAudio from '../assets/bgm.mp3';
+const prop1 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968885/prop1_xxwq96.png';
+const prop2 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968888/prop2_hzro4w.png';
+const prop3 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968889/prop3_rkhheg.png';
+const prop4 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968889/prop4_g6sgih.png';
+const prop5 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968891/prop5_uyla8p.png';
+const bgmAudio = 'https://res.cloudinary.com/dhc60qvv3/video/upload/v1772968905/bgm_ek7r3n.mp3';
 
 export type GameState = 'menu' | 'playing' | 'levelup' | 'gameover' | 'paused';
 

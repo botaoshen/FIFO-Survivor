@@ -3,14 +3,14 @@ import { GameEngine, GameState, UpgradeOption } from './game/Engine';
 import { Heart, Zap, Shield, FastForward, Droplet, ArrowRight, Maximize, RotateCw, Wind, Coffee, Pickaxe, Cone, PieChart, RotateCcw, Pause, Play, CircleDollarSign, Plus, Check } from 'lucide-react';
 
 const daveImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772965522/Dave_the_miner_akwikr.png';
-import bigKevImg from './assets/big_kev.png';
-import kevImg from './assets/kev.png';
-import shazzaImg from './assets/shazza_the_camp_cook.png';
-import steveImg from './assets/steve_the_safety_officer.png';
-import dashBg from './assets/dashbackground.png';
-import prop1 from './assets/prop1.png';
-import prop2 from './assets/prop2.png';
-import prop3 from './assets/prop3.png';
+const bigKevImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772965523/big_kev_cyuxkl.png';
+const kevImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772965523/Kev_pqjaue.png';
+const shazzaImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772965523/Shazza_the_camp_cook_wm3uby.png';
+const steveImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772965618/steve_the_safety_officer_zssekj.png';
+const dashBg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968885/dashbackground_ajglxu.png';
+const prop1 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968885/prop1_xxwq96.png';
+const prop2 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968888/prop2_hzro4w.png';
+const prop3 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968889/prop3_rkhheg.png';
 
 const iconMap: Record<string, React.ReactNode> = {
   'pickaxe': <img src={prop1} alt="Pickaxe" className="w-6 h-6 object-contain drop-shadow-md" />,
