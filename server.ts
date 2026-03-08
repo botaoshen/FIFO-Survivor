@@ -19,7 +19,7 @@ async function startServer() {
   }
 
   // Serve static files from public directory
-  app.use(express.static(path.join(__dirname, "public")));
+  app.use(express.static(path.join(process.cwd(), "public")));
   
   // Serve static files from public/uploads
   app.use("/uploads", express.static(uploadDir));
@@ -82,9 +82,10 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     // Production static serving
-    app.use(express.static(path.join(__dirname, "dist")));
+    const distPath = path.join(process.cwd(), "dist");
+    app.use(express.static(distPath));
     app.get("*", (req, res) => {
-      res.sendFile(path.join(__dirname, "dist", "index.html"));
+      res.sendFile(path.join(distPath, "index.html"));
     });
   }
 

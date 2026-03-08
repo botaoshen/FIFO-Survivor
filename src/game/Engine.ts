@@ -100,13 +100,13 @@ export class GameEngine {
     this.canvas = canvas; this.ctx = canvas.getContext('2d')!; this.callbacks = callbacks;
     
     this.spriteSheet = new Image();
-    this.spriteSheet.src = '/sprites.png';
+    this.spriteSheet.src = '/kev.png';
     this.spriteSheet.onload = () => { this.spritesLoaded = true; };
     this.spriteSheet.onerror = () => { /* Fallback to canvas drawing */ };
 
     this.davoSpriteSheet = new Image();
     this.davoSpriteSheet.crossOrigin = "anonymous";
-    this.davoSpriteSheet.src = '/davo.png';
+    this.davoSpriteSheet.src = '/dave_the_miner.png';
     this.davoSpriteSheet.onload = () => { this.davoSpritesLoaded = true; };
     this.davoSpriteSheet.onerror = () => { /* Fallback to canvas drawing */ };
 
