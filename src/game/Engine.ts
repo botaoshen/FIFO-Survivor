@@ -51,7 +51,7 @@ export interface Projectile {
 }
 
 export interface Collectible {
-  id: number; pos: Vector2; type: 'gem_blue' | 'gem_green' | 'pie';
+  id: number; pos: Vector2; type: 'gem_blue' | 'gem_green' | 'pie' | 'beer' | 'coffee' | 'magnet' | 'dynamite' | 'mystery_box';
   value: number; radius: number;
 }
 
@@ -100,6 +100,12 @@ export class GameEngine {
   camera = { x: 0, y: 0 }; time: number = 0; enemySpawnTimer: number = 0; enemySpawnRate: number = 2.0;
   bossSpawnTimer: number = 60;
   difficultyMultiplier: number = 1.0; nextId = 1;
+  specialItemSpawnTimer: number = 15;
+
+  buffs = {
+    speedBoost: 0,
+    damageBoost: 0,
+  };
 
   spriteSheet: HTMLImageElement;
   spritesLoaded: boolean = false;
@@ -119,6 +125,7 @@ export class GameEngine {
   enemiesLoaded: boolean[] = [false, false, false, false, false, false, false];
 
   bgm: HTMLAudioElement;
+  bgmEnabled: boolean = true;
 
   constructor(canvas: HTMLCanvasElement, callbacks: GameCallbacks) {
     this.canvas = canvas; this.ctx = canvas.getContext('2d')!; this.callbacks = callbacks;
@@ -182,8 +189,26 @@ export class GameEngine {
     this.bgm.volume = 0.5;
   }
 
+  toggleBGM() {
+    this.bgmEnabled = !this.bgmEnabled;
+    if (this.bgmEnabled) {
+      if (this.state === 'playing' || this.state === 'paused' || this.state === 'menu' || this.state === 'gameover') {
+        this.bgm.play().catch(e => console.log('Audio play failed:', e));
+      }
+    } else {
+      this.bgm.pause();
+    }
+    return this.bgmEnabled;
+  }
+
   playBGM() {
-    this.bgm.play().catch(e => console.log('Audio play failed:', e));
+    if (this.bgmEnabled) {
+      this.bgm.play().catch(e => console.log('Audio play failed:', e));
+    }
+  }
+
+  setBGMVolume(volume: number) {
+    this.bgm.volume = volume;
   }
 
   destroy() {
@@ -267,7 +292,9 @@ export class GameEngine {
     this.state = 'playing'; this.callbacks.onStateChange(this.state);
     
     // Attempt to play BGM if not already playing (don't reset currentTime)
-    this.bgm.play().catch(e => console.log('Audio play failed:', e));
+    if (this.bgmEnabled) {
+      this.bgm.play().catch(e => console.log('Audio play failed:', e));
+    }
 
     this.player = { pos: { x: 0, y: 0 }, hp: 100, maxHp: 100, speed: 200, radius: 40, xp: 0, level: 1, xpToNext: 30, gems: 0, pies: 0, damageMultiplier: 1, facing: 'down', isMoving: false, frame: 0, isAttacking: false, attackTimer: 0, characterId };
     this.weapons = {
@@ -300,7 +327,9 @@ export class GameEngine {
   resume() { 
     this.lastTime = performance.now(); 
     this.animationId = requestAnimationFrame(this.loop); 
-    this.bgm.play().catch(e => console.log('Audio play failed:', e));
+    if (this.bgmEnabled) {
+      this.bgm.play().catch(e => console.log('Audio play failed:', e));
+    }
   }
   
   togglePause() {
@@ -326,6 +355,7 @@ export class GameEngine {
     this.time += dt; this.difficultyMultiplier = 1 + this.time / 60;
     this.updatePlayer(dt); this.updateWeapons(dt); this.updateEnemies(dt);
     this.updateProjectiles(dt); this.updateCollectibles(dt); this.updateParticles(dt); this.spawnEnemies(dt);
+    this.spawnSpecialItems(dt);
     this.camera.x = this.player.pos.x - this.canvas.width / 2; this.camera.y = this.player.pos.y - this.canvas.height / 2;
   }
 
@@ -348,6 +378,14 @@ export class GameEngine {
     }
     
     this.player.isMoving = (dx !== 0 || dy !== 0);
+    
+    let currentSpeed = this.player.speed;
+    if (this.buffs.speedBoost > 0) {
+      currentSpeed *= 1.6;
+      this.buffs.speedBoost -= dt;
+      if (Math.random() < 0.3) this.spawnParticle(this.player.pos, { x: (Math.random() - 0.5) * 50, y: (Math.random() - 0.5) * 50 }, '#f1c40f', 4, 0.4);
+    }
+
     if (this.player.isMoving) {
       this.player.frame += dt * 10;
       if (Math.abs(dx) > Math.abs(dy)) {
@@ -356,8 +394,8 @@ export class GameEngine {
         this.player.facing = dy > 0 ? 'down' : 'up';
       }
       const len = Math.sqrt(dx * dx + dy * dy);
-      this.player.pos.x += (dx / len) * this.player.speed * dt;
-      this.player.pos.y += (dy / len) * this.player.speed * dt;
+      this.player.pos.x += (dx / len) * currentSpeed * dt;
+      this.player.pos.y += (dy / len) * currentSpeed * dt;
       if (Math.random() < 0.2) this.spawnParticle({ x: this.player.pos.x, y: this.player.pos.y + 20 }, { x: (Math.random() - 0.5) * 20, y: (Math.random() - 0.5) * 20 }, 'rgba(150, 75, 50, 0.5)', Math.random() * 5 + 5, 0.5);
     } else {
       this.player.frame += dt * 5; // Idle animation speed
@@ -524,6 +562,36 @@ export class GameEngine {
           if (c.type === 'pie') {
             this.player.hp = Math.min(this.player.maxHp, this.player.hp + 20);
             this.player.pies++;
+          } else if (c.type === 'beer') {
+            this.player.hp = Math.min(this.player.maxHp, this.player.hp + 50);
+            for (let k = 0; k < 10; k++) this.spawnParticle(this.player.pos, { x: (Math.random() - 0.5) * 100, y: (Math.random() - 0.5) * 100 }, '#e74c3c', 5, 0.5);
+          } else if (c.type === 'coffee') {
+            this.buffs.speedBoost = 10; // 10 seconds speed boost
+            for (let k = 0; k < 10; k++) this.spawnParticle(this.player.pos, { x: (Math.random() - 0.5) * 100, y: (Math.random() - 0.5) * 100 }, '#f1c40f', 5, 0.5);
+          } else if (c.type === 'magnet') {
+            // Pull all gems
+            for (const col of this.collectibles) {
+              if (col.type === 'gem_blue' || col.type === 'gem_green') {
+                const angle = Math.atan2(this.player.pos.y - col.pos.y, this.player.pos.x - col.pos.x);
+                col.pos.x += Math.cos(angle) * 1000; col.pos.y += Math.sin(angle) * 1000;
+              }
+            }
+          } else if (c.type === 'dynamite') {
+            // Clear nearby enemies
+            for (let j = this.enemies.length - 1; j >= 0; j--) {
+              const enemy = this.enemies[j];
+              if (this.getDist(this.player.pos, enemy.pos) < 500) {
+                enemy.hp = 0;
+                this.killEnemy(enemy);
+                this.enemies.splice(j, 1);
+              }
+            }
+            for (let k = 0; k < 30; k++) this.spawnParticle(this.player.pos, { x: (Math.random() - 0.5) * 500, y: (Math.random() - 0.5) * 500 }, '#e67e22', 10, 0.8);
+          } else if (c.type === 'mystery_box') {
+            const upgrades = this.generateUpgrades();
+            const randomUpgrade = upgrades[Math.floor(Math.random() * upgrades.length)];
+            this.applyUpgrade(randomUpgrade.id);
+            for (let k = 0; k < 20; k++) this.spawnParticle(this.player.pos, { x: (Math.random() - 0.5) * 200, y: (Math.random() - 0.5) * 200 }, '#9b59b6', 8, 0.6);
           } else {
             this.player.xp += c.value;
             this.player.gems += c.value;
@@ -581,6 +649,26 @@ export class GameEngine {
     }
   }
 
+  spawnSpecialItems(dt: number) {
+    this.specialItemSpawnTimer -= dt;
+    if (this.specialItemSpawnTimer <= 0) {
+      this.specialItemSpawnTimer = 20 + Math.random() * 20; // Spawn every 20-40 seconds
+      
+      const angle = Math.random() * Math.PI * 2;
+      const dist = Math.max(this.canvas.width, this.canvas.height) / 2 + 200;
+      const pos = { x: this.player.pos.x + Math.cos(angle) * dist, y: this.player.pos.y + Math.sin(angle) * dist };
+      
+      const rand = Math.random();
+      let type: 'beer' | 'coffee' | 'magnet' | 'dynamite' | 'mystery_box' = 'beer';
+      if (rand > 0.9) type = 'mystery_box';
+      else if (rand > 0.7) type = 'dynamite';
+      else if (rand > 0.5) type = 'magnet';
+      else if (rand > 0.25) type = 'coffee';
+      
+      this.collectibles.push({ id: this.nextId++, pos, type, value: 0, radius: 20 });
+    }
+  }
+
   killEnemy(enemy: Enemy) {
     const rand = Math.random();
     if (enemy.type === 'enemy7') {
@@ -588,6 +676,15 @@ export class GameEngine {
       for (let i = 0; i < 5; i++) {
         this.collectibles.push({ id: this.nextId++, pos: { x: enemy.pos.x + (Math.random() - 0.5) * 60, y: enemy.pos.y + (Math.random() - 0.5) * 60 }, type: 'gem_green', value: 5, radius: 10 });
       }
+      // Boss also has a high chance to drop a mystery box
+      if (Math.random() < 0.5) {
+        this.collectibles.push({ id: this.nextId++, pos: { ...enemy.pos }, type: 'mystery_box', value: 0, radius: 20 });
+      }
+    } else if (rand < 0.01) {
+      // 1% chance for special item from regular enemy
+      const types: ('beer' | 'coffee' | 'magnet' | 'dynamite')[] = ['beer', 'coffee', 'magnet', 'dynamite'];
+      const type = types[Math.floor(Math.random() * types.length)];
+      this.collectibles.push({ id: this.nextId++, pos: { ...enemy.pos }, type, value: 0, radius: 20 });
     } else if (rand < 0.05) {
       this.collectibles.push({ id: this.nextId++, pos: { ...enemy.pos }, type: 'pie', value: 0, radius: 12 });
     } else {
@@ -808,6 +905,38 @@ export class GameEngine {
           ctx.fillStyle = '#d2a679'; ctx.beginPath(); ctx.ellipse(0, 0, 12, 8, 0, 0, Math.PI * 2); ctx.fill();
           ctx.fillStyle = '#a64dff'; ctx.beginPath(); ctx.ellipse(0, -2, 10, 6, 0, 0, Math.PI * 2); ctx.fill(); // Meat filling
           ctx.strokeStyle = '#8b5a2b'; ctx.lineWidth = 2; ctx.stroke();
+        } else if (c.type === 'beer') {
+          // Draw beer bottle
+          ctx.shadowBlur = 10; ctx.shadowColor = '#f1c40f';
+          ctx.fillStyle = '#8b4513'; ctx.fillRect(-5, -8, 10, 18); // body
+          ctx.fillStyle = '#deb887'; ctx.fillRect(-2, -14, 4, 6); // neck
+          ctx.fillStyle = '#fff'; ctx.fillRect(-5, -4, 10, 6); // label
+          ctx.shadowBlur = 0;
+        } else if (c.type === 'coffee') {
+          // Draw coffee cup
+          ctx.shadowBlur = 10; ctx.shadowColor = '#fff';
+          ctx.fillStyle = '#f5f5f5'; ctx.beginPath(); ctx.moveTo(-8, -10); ctx.lineTo(8, -10); ctx.lineTo(6, 10); ctx.lineTo(-6, 10); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = '#6f4e37'; ctx.fillRect(-5, -7, 10, 3); // coffee
+          ctx.shadowBlur = 0;
+        } else if (c.type === 'magnet') {
+          // Draw U-magnet
+          ctx.shadowBlur = 10; ctx.shadowColor = '#3498db';
+          ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(0, 0, 10, Math.PI, 0); ctx.stroke();
+          ctx.fillStyle = '#bdc3c7'; ctx.fillRect(-13, 0, 6, 6); ctx.fillRect(7, 0, 6, 6);
+          ctx.shadowBlur = 0;
+        } else if (c.type === 'dynamite') {
+          // Draw dynamite stick
+          ctx.shadowBlur = 10; ctx.shadowColor = '#e67e22';
+          ctx.fillStyle = '#c0392b'; ctx.fillRect(-6, -12, 12, 24);
+          ctx.strokeStyle = '#f1c40f'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, -12); ctx.lineTo(0, -18); ctx.stroke();
+          ctx.shadowBlur = 0;
+        } else if (c.type === 'mystery_box') {
+          // Draw mystery box
+          ctx.shadowBlur = 15; ctx.shadowColor = '#9b59b6';
+          ctx.fillStyle = '#8e44ad'; ctx.fillRect(-10, -10, 20, 20);
+          ctx.strokeStyle = '#f1c40f'; ctx.lineWidth = 2; ctx.strokeRect(-10, -10, 20, 20);
+          ctx.fillStyle = '#f1c40f'; ctx.font = 'bold 14px Arial'; ctx.textAlign = 'center'; ctx.fillText('?', 0, 5);
+          ctx.shadowBlur = 0;
         } else {
           ctx.fillStyle = c.type === 'gem_blue' ? '#00ccff' : '#00ff00';
           ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(8, 0); ctx.lineTo(0, 10); ctx.lineTo(-8, 0); ctx.closePath();

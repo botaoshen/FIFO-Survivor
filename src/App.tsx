@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GameEngine, GameState, UpgradeOption } from './game/Engine';
-import { Heart, Zap, Shield, FastForward, Droplet, ArrowRight, Maximize, RotateCw, Wind, Coffee, Pickaxe, Cone, PieChart, RotateCcw, Pause, Play, CircleDollarSign, Plus, Check } from 'lucide-react';
+import { Heart, Zap, Shield, FastForward, Droplet, ArrowRight, Maximize, RotateCw, Wind, Coffee, Pickaxe, Cone, PieChart, RotateCcw, Pause, Play, CircleDollarSign, Plus, Check, Volume2, VolumeX } from 'lucide-react';
 
 const daveImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772965522/Dave_the_miner_akwikr.png';
 const bigKevImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772965523/big_kev_cyuxkl.png';
@@ -44,6 +44,8 @@ export default function App() {
     { id: 'steve', name: 'Steve the Safety Officer', url: steveImg },
   ]);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string>('dave');
+  const [isBgmEnabled, setIsBgmEnabled] = useState(true);
+  const [bgmVolume, setBgmVolume] = useState(0.5);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -95,93 +97,132 @@ export default function App() {
     }
   };
 
+  const toggleBgm = () => {
+    if (engineRef.current) {
+      const enabled = engineRef.current.toggleBGM();
+      setIsBgmEnabled(enabled);
+    }
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const volume = parseFloat(e.target.value);
+    setBgmVolume(volume);
+    if (engineRef.current) {
+      engineRef.current.setBGMVolume(volume);
+    }
+  };
+
   return (
     <div className="relative w-full h-screen overflow-hidden bg-black font-sans select-none">
       <canvas ref={canvasRef} className="block w-full h-full" />
 
       {/* HUD */}
       {(gameState === 'playing' || gameState === 'paused') && (
-        <div className="absolute top-0 left-0 w-full p-4 pointer-events-none flex justify-between items-start z-50">
-          
-          {/* Left Section */}
-          <div className="flex items-center gap-4">
-            {/* Portrait & Health Pill */}
-            <div className="relative flex items-center">
-              {/* Name and Health Pill */}
-              <div className="bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] border-4 border-[#2D1A11] rounded-r-xl rounded-l-none pl-12 pr-6 py-2 ml-10 flex flex-col justify-center h-16 shadow-lg relative">
-                <span className="text-[#F4D0A4] font-bold text-xl leading-tight uppercase tracking-wide" style={{ WebkitTextStroke: '1px #2D1A11' }}>
-                  {characters.find(c => c.id === selectedCharacterId)?.name || 'Davo'}
-                </span>
-                <div className="w-32 h-4 bg-[#4A2F1D] rounded-sm border-2 border-[#1A0F09] mt-1 relative overflow-hidden">
-                  <div 
-                    className="h-full bg-[#e74c3c]"
-                    style={{ width: `${(stats.hp / stats.maxHp) * 100}%` }}
-                  />
+        <div className="absolute top-0 left-0 w-full p-1 md:p-4 pointer-events-none z-50">
+          {/* Desktop HUD */}
+          <div className="hidden md:flex justify-between items-start w-full">
+            <div className="flex items-center gap-4">
+              <div className="relative flex items-center">
+                <div className="bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] border-4 border-[#2D1A11] rounded-r-xl rounded-l-none pl-12 pr-6 py-2 ml-10 flex flex-col justify-center h-16 shadow-lg relative">
+                  <span className="text-[#F4D0A4] font-bold text-xl leading-tight uppercase tracking-wide" style={{ WebkitTextStroke: '1px #2D1A11' }}>
+                    {characters.find(c => c.id === selectedCharacterId)?.name || 'Davo'}
+                  </span>
+                  <div className="w-32 h-4 bg-[#4A2F1D] rounded-sm border-2 border-[#1A0F09] mt-1 relative overflow-hidden">
+                    <div className="h-full bg-[#e74c3c]" style={{ width: `${(stats.hp / stats.maxHp) * 100}%` }} />
+                  </div>
+                </div>
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-20 h-20 bg-[#5C3A21] rounded-full border-4 border-[#2D1A11] overflow-hidden flex items-center justify-center shadow-lg z-10">
+                  <img src={characters.find(c => c.id === selectedCharacterId)?.url} alt="Character" className="w-full h-full object-contain bg-[#4A4A4A]" />
                 </div>
               </div>
-              {/* Portrait Circle (Overlapping) */}
-              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-20 h-20 bg-[#5C3A21] rounded-full border-4 border-[#2D1A11] overflow-hidden flex items-center justify-center shadow-lg z-10">
-                <img 
-                  src={characters.find(c => c.id === selectedCharacterId)?.url} 
-                  alt="Character" 
-                  className="w-full h-full object-contain bg-[#4A4A4A]"
+              <div className="flex items-center bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] border-4 border-[#2D1A11] rounded-xl px-4 h-12 shadow-lg">
+                <div className="w-6 h-6 bg-[#ebcb8b] rounded-full mr-2 border-2 border-[#d08770] flex items-center justify-center">
+                  <div className="w-3 h-3 bg-[#d08770] rounded-full"></div>
+                </div>
+                <span className="text-[#F4D0A4] font-bold text-xl" style={{ WebkitTextStroke: '1px #2D1A11' }}>{stats.gems}</span>
+              </div>
+            </div>
+            <div className="flex-1 max-w-lg mx-4">
+              <div className="w-full h-10 bg-[#4A2F1D] rounded-xl border-4 border-[#2D1A11] relative overflow-hidden shadow-lg flex items-center p-1">
+                <div className="h-full bg-[#f1c40f] rounded-sm transition-all duration-200" style={{ width: `${(stats.xp / stats.xpToNext) * 100}%` }} />
+                <div className="absolute inset-0 flex items-center justify-center text-[#F4D0A4] font-bold drop-shadow-md uppercase tracking-wide" style={{ WebkitTextStroke: '1px #2D1A11' }}>
+                  LVL {stats.level} - {stats.xp} / {stats.xpToNext}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] border-4 border-[#2D1A11] rounded-xl px-3 h-12 shadow-lg gap-2">
+                <button 
+                  onClick={toggleBgm}
+                  className="flex items-center justify-center pointer-events-auto hover:scale-110 transition-transform"
+                >
+                  {isBgmEnabled ? <Volume2 className="w-6 h-6 text-[#F4D0A4]" /> : <VolumeX className="w-6 h-6 text-[#F4D0A4]" />}
+                </button>
+                <input 
+                  type="range" min="0" max="1" step="0.01" 
+                  value={bgmVolume} 
+                  onChange={handleVolumeChange}
+                  className="w-24 accent-[#F4D0A4] cursor-pointer pointer-events-auto"
+                />
+              </div>
+              <div className="flex items-center bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] border-4 border-[#2D1A11] rounded-xl px-4 h-12 shadow-lg">
+                <PieChart className="w-6 h-6 text-[#F4D0A4] mr-2 fill-[#F4D0A4]" />
+                <span className="text-[#F4D0A4] font-bold text-xl" style={{ WebkitTextStroke: '1px #2D1A11' }}>{stats.pies}</span>
+              </div>
+              <button onClick={() => startGame()} className="w-12 h-12 bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] border-4 border-[#2D1A11] rounded-xl flex items-center justify-center pointer-events-auto hover:from-[#9C6A53] hover:to-[#6C4A31] shadow-lg">
+                <RotateCcw className="w-6 h-6 text-[#F4D0A4]" />
+              </button>
+              <button onClick={() => engineRef.current?.togglePause()} className="w-12 h-12 bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] border-4 border-[#2D1A11] rounded-xl flex items-center justify-center pointer-events-auto hover:from-[#9C6A53] hover:to-[#6C4A31] shadow-lg">
+                {gameState === 'paused' ? <Play className="w-6 h-6 text-[#F4D0A4] fill-[#F4D0A4]" /> : <Pause className="w-6 h-6 text-[#F4D0A4] fill-[#F4D0A4]" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile HUD (Redesigned) */}
+          <div className="flex md:hidden flex-col w-full px-2 pt-1 gap-1">
+            <div className="flex items-center justify-between w-full gap-2">
+              {/* Portrait & HP */}
+              <div className="flex items-center">
+                <div className="relative w-14 h-14 bg-[#5C3A21] rounded-full border-2 border-[#2D1A11] overflow-hidden shadow-lg">
+                  <img src={characters.find(c => c.id === selectedCharacterId)?.url} alt="Char" className="w-full h-full object-contain" />
+                </div>
+                <div className="ml-1.5 w-24 h-3.5 bg-[#4A2F1D] rounded-full border-2 border-[#1A0F09] overflow-hidden shadow-inner">
+                  <div className="h-full bg-[#e74c3c]" style={{ width: `${(stats.hp / stats.maxHp) * 100}%` }} />
+                </div>
+              </div>
+              
+              {/* XP Bar */}
+              <div className="flex-1 h-7 bg-[#4A2F1D] rounded-full border-2 border-[#2D1A11] relative overflow-hidden shadow-inner">
+                <div className="h-full bg-[#f1c40f]" style={{ width: `${(stats.xp / stats.xpToNext) * 100}%` }} />
+                <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[#F4D0A4] uppercase tracking-wider" style={{ WebkitTextStroke: '0.5px #2D1A11' }}>
+                  LVL {stats.level}
+                </div>
+              </div>
+
+              {/* Pause Button */}
+              <button 
+                onClick={() => engineRef.current?.togglePause()}
+                className="w-10 h-10 bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] border-2 border-[#2D1A11] rounded-lg flex items-center justify-center pointer-events-auto shadow-lg active:scale-90 transition-transform"
+              >
+                {gameState === 'paused' ? <Play className="w-5 h-5 text-[#F4D0A4] fill-[#F4D0A4]" /> : <Pause className="w-5 h-5 text-[#F4D0A4] fill-[#F4D0A4]" />}
+              </button>
+            </div>
+
+            {/* Volume Control Row Mobile */}
+            <div className="flex items-center justify-end gap-2 px-1">
+              <div className="flex items-center bg-black/40 rounded-full px-2 py-1 border border-[#F4D0A4]/20 gap-2">
+                <button onClick={toggleBgm} className="pointer-events-auto">
+                  {isBgmEnabled ? <Volume2 className="w-4 h-4 text-[#F4D0A4]" /> : <VolumeX className="w-4 h-4 text-[#F4D0A4]" />}
+                </button>
+                <input 
+                  type="range" min="0" max="1" step="0.01" 
+                  value={bgmVolume} 
+                  onChange={handleVolumeChange}
+                  className="w-20 h-1 accent-[#F4D0A4] cursor-pointer pointer-events-auto"
                 />
               </div>
             </div>
-
-            {/* Coins/Gems */}
-            <div className="flex items-center bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] border-4 border-[#2D1A11] rounded-xl px-4 h-12 shadow-lg">
-              <div className="w-6 h-6 bg-[#ebcb8b] rounded-full mr-2 border-2 border-[#d08770] flex items-center justify-center">
-                <div className="w-3 h-3 bg-[#d08770] rounded-full"></div>
-              </div>
-              <span className="text-[#F4D0A4] font-bold text-xl" style={{ WebkitTextStroke: '1px #2D1A11' }}>{stats.gems}</span>
-            </div>
           </div>
-
-          {/* Middle Section: XP Bar */}
-          <div className="flex-1 max-w-lg mx-4">
-            <div className="w-full h-10 bg-[#4A2F1D] rounded-xl border-4 border-[#2D1A11] relative overflow-hidden shadow-lg flex items-center p-1">
-              <div 
-                className="h-full bg-[#f1c40f] rounded-sm transition-all duration-200"
-                style={{ width: `${(stats.xp / stats.xpToNext) * 100}%` }}
-              />
-              <div className="absolute inset-0 flex items-center justify-center text-[#F4D0A4] font-bold drop-shadow-md uppercase tracking-wide" style={{ WebkitTextStroke: '1px #2D1A11' }}>
-                LVL {stats.level} - {stats.xp} / {stats.xpToNext}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Section */}
-          <div className="flex items-center gap-3">
-            {/* Pies */}
-            <div className="flex items-center bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] border-4 border-[#2D1A11] rounded-xl px-4 h-12 shadow-lg">
-              <PieChart className="w-6 h-6 text-[#F4D0A4] mr-2 fill-[#F4D0A4]" />
-              <span className="text-[#F4D0A4] font-bold text-xl" style={{ WebkitTextStroke: '1px #2D1A11' }}>{stats.pies}</span>
-            </div>
-            {/* Meat */}
-            <div className="flex items-center bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] border-4 border-[#2D1A11] rounded-xl px-4 h-12 shadow-lg">
-              <div className="w-6 h-6 bg-[#bf616a] rounded-full mr-2 border-2 border-[#8fbcbb]"></div>
-              <span className="text-[#F4D0A4] font-bold text-xl" style={{ WebkitTextStroke: '1px #2D1A11' }}>0</span>
-            </div>
-            {/* Buttons */}
-            <button 
-              onClick={() => startGame()}
-              className="w-12 h-12 bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] border-4 border-[#2D1A11] rounded-xl flex items-center justify-center pointer-events-auto hover:from-[#9C6A53] hover:to-[#6C4A31] shadow-lg"
-            >
-              <RotateCcw className="w-6 h-6 text-[#F4D0A4]" />
-            </button>
-            <button 
-              onClick={() => engineRef.current?.togglePause()}
-              className="w-12 h-12 bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] border-4 border-[#2D1A11] rounded-xl flex items-center justify-center pointer-events-auto hover:from-[#9C6A53] hover:to-[#6C4A31] shadow-lg"
-            >
-              {gameState === 'paused' ? (
-                <Play className="w-6 h-6 text-[#F4D0A4] fill-[#F4D0A4]" />
-              ) : (
-                <Pause className="w-6 h-6 text-[#F4D0A4] fill-[#F4D0A4]" />
-              )}
-            </button>
-          </div>
-
         </div>
       )}
 
@@ -283,61 +324,76 @@ export default function App() {
           </button>
 
           {/* Credits & Site Link */}
-          <div className="absolute bottom-6 right-8 flex flex-col items-end gap-1 pointer-events-auto">
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-auto z-[100]">
             <a 
               href="https://fifos.life" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-[#F4D0A4] font-bold text-lg hover:text-white transition-colors uppercase tracking-widest leading-none"
+              className="text-[#F4D0A4] font-black text-[16px] md:text-lg hover:text-white transition-colors uppercase tracking-[0.3em] leading-none"
               style={{ WebkitTextStroke: '0.5px #2D1A11', textShadow: '0 2px 4px black' }}
             >
               FIFOS.LIFE
             </a>
-            <div className="flex items-center gap-2 text-[#F4D0A4] font-bold text-[10px] uppercase tracking-wider" style={{ WebkitTextStroke: '0.5px #2D1A11', textShadow: '0 2px 4px black' }}>
-              <span>Created by</span>
+            <div className="flex items-center gap-1 text-[#F4D0A4] font-bold text-[12px] md:text-[11px] uppercase tracking-wider" style={{ WebkitTextStroke: '0.3px #2D1A11', textShadow: '0 1px 2px black' }}>
+              <span>By</span>
               <a 
                 href="https://www.linkedin.com/in/botaoshen/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="hover:text-white transition-colors underline decoration-[#F4D0A4] underline-offset-4"
+                className="hover:text-white transition-colors underline decoration-[#F4D0A4]"
               >
                 Botao Shen
               </a>
             </div>
+          </div>
+
+          {/* Menu Volume Control */}
+          <div className="absolute top-4 right-4 flex items-center bg-black/40 rounded-full px-3 py-2 border border-[#F4D0A4]/20 gap-2 pointer-events-auto z-[100]">
+            <button onClick={toggleBgm} className="hover:scale-110 transition-transform">
+              {isBgmEnabled ? <Volume2 className="w-5 h-5 text-[#F4D0A4]" /> : <VolumeX className="w-5 h-5 text-[#F4D0A4]" />}
+            </button>
+            <input 
+              type="range" min="0" max="1" step="0.01" 
+              value={bgmVolume} 
+              onChange={handleVolumeChange}
+              className="w-20 md:w-32 h-1 accent-[#F4D0A4] cursor-pointer"
+            />
           </div>
         </div>
       )}
 
       {/* Level Up */}
       {gameState === 'levelup' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-md z-50">
-          <div className="max-w-4xl w-full p-8">
-            <div className="relative bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] border-4 border-[#2D1A11] rounded-xl px-12 py-4 shadow-[0_10px_20px_rgba(0,0,0,0.6)] mb-8 mx-auto w-max">
+        <div className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-md z-50 overflow-y-auto py-8">
+          <div className="max-w-4xl w-full p-4 md:p-8">
+            <div className="relative bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] border-4 border-[#2D1A11] rounded-xl px-8 md:px-12 py-3 md:py-4 shadow-[0_10px_20px_rgba(0,0,0,0.6)] mb-6 md:mb-8 mx-auto w-max">
               <div className="absolute top-2 left-2 w-3 h-3 rounded-full bg-[#4A2F1D] border-2 border-[#1A0F09] shadow-inner"></div>
               <div className="absolute top-2 right-2 w-3 h-3 rounded-full bg-[#4A2F1D] border-2 border-[#1A0F09] shadow-inner"></div>
               <div className="absolute bottom-2 left-2 w-3 h-3 rounded-full bg-[#4A2F1D] border-2 border-[#1A0F09] shadow-inner"></div>
               <div className="absolute bottom-2 right-2 w-3 h-3 rounded-full bg-[#4A2F1D] border-2 border-[#1A0F09] shadow-inner"></div>
-              <h2 className="text-4xl font-black text-center text-[#F4D0A4] drop-shadow-lg uppercase tracking-widest" style={{ WebkitTextStroke: '1.5px #2D1A11', textShadow: '0 4px 4px rgba(0,0,0,0.5)' }}>
+              <h2 className="text-2xl md:text-4xl font-black text-center text-[#F4D0A4] drop-shadow-lg uppercase tracking-widest" style={{ WebkitTextStroke: '1.5px #2D1A11', textShadow: '0 4px 4px rgba(0,0,0,0.5)' }}>
                 Level Up!
               </h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
               {upgrades.map((u) => (
                 <button
                   key={u.id}
                   onClick={() => selectUpgrade(u.id)}
-                  className="relative bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] hover:from-[#9C6A50] hover:to-[#6B3A20] border-4 border-[#2D1A11] hover:border-[#F4D0A4] p-6 rounded-2xl flex flex-col items-center text-center transition-all transform hover:scale-105 group pointer-events-auto shadow-[0_8px_16px_rgba(0,0,0,0.5)]"
+                  className="relative bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] hover:from-[#9C6A50] hover:to-[#6B3A20] border-4 border-[#2D1A11] hover:border-[#F4D0A4] p-4 md:p-6 rounded-2xl flex flex-row md:flex-col items-center text-left md:text-center transition-all transform hover:scale-105 group pointer-events-auto shadow-[0_8px_16px_rgba(0,0,0,0.5)]"
                 >
                   <div className="absolute top-2 left-2 w-2 h-2 rounded-full bg-[#4A2F1D] border border-[#1A0F09] shadow-inner"></div>
                   <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#4A2F1D] border border-[#1A0F09] shadow-inner"></div>
                   <div className="absolute bottom-2 left-2 w-2 h-2 rounded-full bg-[#4A2F1D] border border-[#1A0F09] shadow-inner"></div>
                   <div className="absolute bottom-2 right-2 w-2 h-2 rounded-full bg-[#4A2F1D] border border-[#1A0F09] shadow-inner"></div>
 
-                  <div className="mb-4 p-4 bg-[#4A2F1D] border-2 border-[#2D1A11] rounded-full group-hover:bg-[#5C3A21] transition-colors">
-                    {iconMap[u.icon] || <Zap className="w-8 h-8 text-[#F4D0A4]" />}
+                  <div className="mr-4 md:mr-0 md:mb-4 p-3 md:p-4 bg-[#4A2F1D] border-2 border-[#2D1A11] rounded-full group-hover:bg-[#5C3A21] transition-colors flex-shrink-0">
+                    {iconMap[u.icon] || <Zap className="w-6 h-6 md:w-8 md:h-8 text-[#F4D0A4]" />}
                   </div>
-                  <h3 className="text-xl font-bold text-[#F4D0A4] mb-2 uppercase tracking-wide" style={{ WebkitTextStroke: '1px #2D1A11' }}>{u.title}</h3>
-                  <p className="text-[#F4D0A4] text-sm font-bold opacity-90">{u.description}</p>
+                  <div className="flex flex-col">
+                    <h3 className="text-lg md:text-xl font-bold text-[#F4D0A4] mb-1 md:mb-2 uppercase tracking-wide" style={{ WebkitTextStroke: '1px #2D1A11' }}>{u.title}</h3>
+                    <p className="text-[#F4D0A4] text-xs md:text-sm font-bold opacity-90">{u.description}</p>
+                  </div>
                 </button>
               ))}
             </div>
