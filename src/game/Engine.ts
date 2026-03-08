@@ -142,8 +142,7 @@ export class GameEngine {
     window.addEventListener('keydown', this.handleKeyDown); window.addEventListener('keyup', this.handleKeyUp);
     window.addEventListener('resize', this.handleResize); this.handleResize();
 
-    const bgmUrl = `https://drive.google.com/uc?export=download&id=1-iyc1yFVrChpENv97T94e01UyH2wJmRJ`;
-    this.bgm = new Audio(`/api/proxy?url=${encodeURIComponent(bgmUrl)}`);
+    this.bgm = new Audio('/bgm.mp3');
     this.bgm.loop = true;
     this.bgm.volume = 0.5;
   }
