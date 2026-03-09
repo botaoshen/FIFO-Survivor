@@ -77,7 +77,7 @@ export interface Collectible {
 }
 
 export interface Particle {
-  pos: Vector2; vel: Vector2; life: number; maxLife: number; color: string; size: number;
+  pos: Vector2; vel: Vector2; life: number; maxLife: number; color: string; size: number; text?: string;
 }
 
 export interface Prop {
@@ -96,6 +96,8 @@ export interface Character {
     speed: number;
     damageMultiplier: number;
   };
+  startingBuff: string;
+  specialSkill: string;
 }
 
 export const CHARACTERS: Character[] = [
@@ -104,56 +106,72 @@ export const CHARACTERS: Character[] = [
     name: 'Dave the Miner',
     img: daveImg,
     description: 'A reliable miner. Balanced stats.',
-    stats: { hp: 100, speed: 200, damageMultiplier: 1 }
+    stats: { hp: 100, speed: 200, damageMultiplier: 1 },
+    startingBuff: 'Starts with Level 2 Pickaxe',
+    specialSkill: 'Gold Rush: Gems give 20% more XP'
   },
   {
     id: 'sheila',
     name: 'Touch Sheila',
     img: touchSheilaImg,
     description: 'Fast and agile, but less HP.',
-    stats: { hp: 80, speed: 250, damageMultiplier: 1.1 }
+    stats: { hp: 80, speed: 250, damageMultiplier: 1.1 },
+    startingBuff: 'Starts with Level 1 Cones',
+    specialSkill: 'Evasion: 15% chance to dodge attacks'
   },
   {
     id: 'oldmate',
     name: 'Old Mate',
     img: oldMateImg,
     description: 'Experienced and tough. High HP.',
-    stats: { hp: 150, speed: 180, damageMultiplier: 0.9 }
+    stats: { hp: 150, speed: 180, damageMultiplier: 0.9 },
+    startingBuff: 'Starts with Level 1 Pies',
+    specialSkill: 'Tough Skin: Takes 20% less damage'
   },
   {
     id: 'gazza',
     name: 'Muscular Gazza',
     img: muscularGazzaImg,
     description: 'Pure power. High damage.',
-    stats: { hp: 120, speed: 190, damageMultiplier: 1.3 }
+    stats: { hp: 120, speed: 190, damageMultiplier: 1.3 },
+    startingBuff: 'Starts with Level 2 Stones',
+    specialSkill: 'Knockback: Attacks push enemies back further'
   },
   {
     id: 'bigkev',
     name: 'Big Kev',
     img: bigKevImg,
     description: 'A massive unit. Huge HP and damage.',
-    stats: { hp: 200, speed: 150, damageMultiplier: 1.5 }
+    stats: { hp: 200, speed: 150, damageMultiplier: 1.5 },
+    startingBuff: 'Size Matters: Pickaxe radius is 30% larger',
+    specialSkill: 'Ground Slam: Deals area damage every 5s'
   },
   {
     id: 'kev',
     name: 'Kev',
     img: kevImg,
     description: 'Just Kev. Pretty average.',
-    stats: { hp: 100, speed: 200, damageMultiplier: 1 }
+    stats: { hp: 100, speed: 210, damageMultiplier: 1 },
+    startingBuff: 'Starts with 10 Pies (Heals)',
+    specialSkill: 'Lucky Find: 10% chance for double gems'
   },
   {
     id: 'shazza',
     name: 'Shazza the Cook',
     img: shazzaImg,
     description: 'Always has a snack. Heals faster.',
-    stats: { hp: 110, speed: 210, damageMultiplier: 0.9 }
+    stats: { hp: 110, speed: 200, damageMultiplier: 0.9 },
+    startingBuff: 'Pies heal for 40 HP instead of 20',
+    specialSkill: 'Snack Time: Regenerates 1 HP per second'
   },
   {
     id: 'steve',
     name: 'Steve the Safety Officer',
     img: steveImg,
     description: 'Safety first. Higher defense (simulated by HP).',
-    stats: { hp: 140, speed: 190, damageMultiplier: 0.8 }
+    stats: { hp: 140, speed: 180, damageMultiplier: 0.8 },
+    startingBuff: 'Starts with Level 2 Cones',
+    specialSkill: 'Safety Zone: Takes 50% less damage when standing still'
   }
 ];
 
@@ -178,7 +196,7 @@ export class GameEngine {
     pos: { x: 0, y: 0 }, hp: 100, maxHp: 100, speed: 200, radius: 25,
     xp: 0, level: 1, xpToNext: 30, gems: 0, pies: 0, damageMultiplier: 1,
     facing: 'down', isMoving: false, frame: 0, isAttacking: false, attackTimer: 0,
-    characterId: 'dave'
+    characterId: 'dave', groundSlamTimer: 0
   };
 
   weapons = {
@@ -236,11 +254,32 @@ export class GameEngine {
 
   bgm: HTMLAudioElement;
   bgmEnabled: boolean = true;
+  audioPool: Record<string, HTMLAudioElement[]> = {};
 
   playSound(src: string, volume: number = 0.5) {
     if (!this.bgmEnabled) return;
-    const audio = new Audio(src);
+    
+    if (!this.audioPool[src]) {
+      this.audioPool[src] = [];
+    }
+    
+    let audio = this.audioPool[src].find(a => a.paused || a.ended);
+    if (!audio) {
+      if (this.audioPool[src].length < 10) {
+        audio = new Audio(src);
+        this.audioPool[src].push(audio);
+      } else {
+        audio = this.audioPool[src][0];
+        this.audioPool[src].push(this.audioPool[src].shift()!);
+      }
+    }
+    
     audio.volume = volume;
+    try {
+      audio.currentTime = 0;
+    } catch (e) {
+      // Ignore if audio isn't ready
+    }
     audio.play().catch(() => {});
   }
 
@@ -361,7 +400,7 @@ export class GameEngine {
   toggleBGM() {
     this.bgmEnabled = !this.bgmEnabled;
     if (this.bgmEnabled) {
-      if (this.state === 'playing' || this.state === 'paused' || this.state === 'menu' || this.state === 'gameover') {
+      if (this.state === 'playing' || this.state === 'paused' || this.state === 'menu' || this.state === 'gameover' || this.state === 'levelup') {
         this.bgm.play().catch(e => console.log('Audio play failed:', e));
       }
     } else {
@@ -452,13 +491,56 @@ export class GameEngine {
       this.bgm.play().catch(e => console.log('Audio play failed:', e));
     }
 
-    this.player = { pos: { x: 0, y: 0 }, hp: 100, maxHp: 100, speed: 200, radius: 40, xp: 0, level: 1, xpToNext: 30, gems: 0, pies: 0, damageMultiplier: 1, facing: 'down', isMoving: false, frame: 0, isAttacking: false, attackTimer: 0, characterId };
+    const charStats = this.selectedCharacter.stats;
+    this.player = { 
+      pos: { x: 0, y: 0 }, 
+      hp: charStats.hp, 
+      maxHp: charStats.hp, 
+      speed: charStats.speed, 
+      radius: 40, 
+      xp: 0, 
+      level: 1, 
+      xpToNext: 30, 
+      gems: 0, 
+      pies: 0, 
+      damageMultiplier: charStats.damageMultiplier, 
+      facing: 'down', 
+      isMoving: false, 
+      frame: 0, 
+      isAttacking: false, 
+      attackTimer: 0, 
+      characterId,
+      groundSlamTimer: 0
+    };
     this.weapons = {
       exclusive: { level: 1, damage: 15, radius: 80, rotationSpeed: Math.PI * 3, angle: 0, active: true },
-      stone: { level: 1, damage: 10, fireRate: 1.0, cooldown: 0, speed: 400, pierce: 1 },
+      stone: { level: 0, damage: 10, fireRate: 1.0, cooldown: 0, speed: 400, pierce: 1 },
       cones: { level: 0, damage: 20, fireRate: 1.5, cooldown: 0, speed: 400, pierce: 2 },
       pies: { level: 0, damage: 10, fireRate: 2.0, cooldown: 0, speed: 300, pierce: 1 },
     };
+
+    // Apply starting buffs
+    if (characterId === 'dave') {
+      this.weapons.exclusive.level = 2;
+      this.weapons.exclusive.damage = 25;
+    } else if (characterId === 'sheila') {
+      this.weapons.cones.level = 1;
+    } else if (characterId === 'oldmate') {
+      this.weapons.pies.level = 1;
+    } else if (characterId === 'gazza') {
+      this.weapons.stone.level = 2;
+      this.weapons.stone.damage = 15;
+      this.weapons.stone.pierce = 2;
+    } else if (characterId === 'bigkev') {
+      this.weapons.exclusive.radius = 104; // 80 * 1.3
+    } else if (characterId === 'kev') {
+      this.player.pies = 10;
+    } else if (characterId === 'steve') {
+      this.weapons.cones.level = 2;
+      this.weapons.cones.damage = 30;
+      this.weapons.cones.pierce = 3;
+    }
+
     this.enemies = []; this.projectiles = []; this.collectibles = []; this.particles = []; this.props = [];
     
     // Generate random props
@@ -476,9 +558,11 @@ export class GameEngine {
     this.lastTime = performance.now(); this.updateStats(); this.animationId = requestAnimationFrame(this.loop);
   }
 
-  pause() { 
+  pause(pauseBgm: boolean = true) { 
     cancelAnimationFrame(this.animationId); 
-    this.bgm.pause();
+    if (pauseBgm) {
+      this.bgm.pause();
+    }
   }
   resume() { 
     this.lastTime = performance.now(); 
@@ -513,6 +597,42 @@ export class GameEngine {
     this.updateProjectiles(dt); this.updateCollectibles(dt); this.updateParticles(dt); this.spawnEnemies(dt);
     this.spawnSpecialItems(dt);
     this.camera.x = this.player.pos.x - this.canvas.width / 2; this.camera.y = this.player.pos.y - this.canvas.height / 2;
+    
+    // Shazza's Snack Time: Regenerates 1 HP per second
+    if (this.player.characterId === 'shazza') {
+      this.player.hp = Math.min(this.player.maxHp, this.player.hp + 1 * dt);
+    }
+
+    // Big Kev's Ground Slam: Deals area damage every 5s
+    if (this.player.characterId === 'bigkev') {
+      if (!this.player.groundSlamTimer) this.player.groundSlamTimer = 0;
+      this.player.groundSlamTimer += dt;
+      if (this.player.groundSlamTimer >= 5) {
+        this.player.groundSlamTimer = 0;
+        this.playSound(sfxHit, 0.6); // Reuse hit sound for slam
+        this.spawnParticle({ x: this.player.pos.x, y: this.player.pos.y - 40 }, { x: 0, y: -20 }, '#e74c3c', 24, 0.8, 'SLAM!');
+        // Create slam visual effect
+        for (let i = 0; i < 30; i++) {
+          const angle = (Math.PI * 2 / 30) * i;
+          const speed = 200;
+          this.spawnParticle(this.player.pos, { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed }, '#8B5A43', 6, 0.5);
+        }
+        // Damage enemies in radius
+        const slamRadius = 200;
+        for (let i = this.enemies.length - 1; i >= 0; i--) {
+          const enemy = this.enemies[i];
+          if (this.getDist(this.player.pos, enemy.pos) <= slamRadius) {
+            enemy.hp -= 50 * this.player.damageMultiplier;
+            const kbAngle = Math.atan2(enemy.pos.y - this.player.pos.y, enemy.pos.x - this.player.pos.x);
+            enemy.knockback.x = Math.cos(kbAngle) * 300; enemy.knockback.y = Math.sin(kbAngle) * 300;
+            if (enemy.hp <= 0) {
+              this.killEnemy(enemy);
+              this.enemies.splice(i, 1);
+            }
+          }
+        }
+      }
+    }
   }
 
   updatePlayer(dt: number) {
@@ -630,7 +750,12 @@ export class GameEngine {
         if (Math.abs(angleDiff) <= Math.PI / 4) {
           enemy.hp -= this.weapons.exclusive.damage * this.player.damageMultiplier * dt * 20;
           const kbAngle = Math.atan2(enemy.pos.y - this.player.pos.y, enemy.pos.x - this.player.pos.x);
-          enemy.knockback.x = Math.cos(kbAngle) * 150; enemy.knockback.y = Math.sin(kbAngle) * 150;
+          let kbForce = 150;
+          if (this.player.characterId === 'gazza') {
+            kbForce *= 2; // Knockback: Attacks push enemies back further
+            if (Math.random() < 0.2) this.spawnParticle({ x: enemy.pos.x, y: enemy.pos.y - 20 }, { x: 0, y: -30 }, '#e74c3c', 16, 0.4, 'BAM!');
+          }
+          enemy.knockback.x = Math.cos(kbAngle) * kbForce; enemy.knockback.y = Math.sin(kbAngle) * kbForce;
           if (Math.random() < 0.1) this.spawnParticle(enemy.pos, { x: (Math.random() - 0.5) * 50, y: (Math.random() - 0.5) * 50 }, '#fff', 2, 0.2);
           if (enemy.hp <= 0) {
             this.killEnemy(enemy);
@@ -682,17 +807,39 @@ export class GameEngine {
       enemy.pos.x += Math.cos(angle) * enemy.speed * dt; enemy.pos.y += Math.sin(angle) * enemy.speed * dt;
       if (this.getDist(this.player.pos, enemy.pos) < this.player.radius + enemy.radius) {
         if (this.buffs.invincibility <= 0) {
-          this.player.hp -= enemy.damage * dt; this.updateStats();
-          this.hitSoundTimer -= dt;
-          if (this.hitSoundTimer <= 0) {
-            this.playSound(sfxHit, 0.4);
-            this.hitSoundTimer = 0.5;
+          let damageTaken = enemy.damage * dt;
+          
+          // Evasion: 15% chance to dodge
+          let dodged = false;
+          if (this.player.characterId === 'sheila' && Math.random() < 0.15) {
+            dodged = true;
+            if (Math.random() < 0.1) this.spawnParticle({ x: this.player.pos.x, y: this.player.pos.y - 30 }, { x: 0, y: -50 }, '#3498db', 20, 0.5, 'DODGE!');
           }
-          if (this.player.hp <= 0) { 
-            this.state = 'gameover'; 
-            this.callbacks.onStateChange(this.state); 
-            // Keep BGM playing for game over screen (dashboard stage)
-            return; 
+
+          if (!dodged) {
+            // Tough Skin: Takes 20% less damage
+            if (this.player.characterId === 'oldmate') {
+              damageTaken *= 0.8;
+              if (Math.random() < 0.1) this.spawnParticle({ x: this.player.pos.x, y: this.player.pos.y - 30 }, { x: 0, y: -50 }, '#95a5a6', 20, 0.5, 'BLOCK!');
+            }
+            // Safety Zone: Takes 50% less damage when standing still
+            if (this.player.characterId === 'steve' && !this.player.isMoving) {
+              damageTaken *= 0.5;
+              if (Math.random() < 0.1) this.spawnParticle({ x: this.player.pos.x, y: this.player.pos.y - 30 }, { x: 0, y: -50 }, '#2ecc71', 20, 0.5, 'SAFE!');
+            }
+
+            this.player.hp -= damageTaken; this.updateStats();
+            this.hitSoundTimer -= dt;
+            if (this.hitSoundTimer <= 0) {
+              this.playSound(sfxHit, 0.4);
+              this.hitSoundTimer = 0.5;
+            }
+            if (this.player.hp <= 0) { 
+              this.state = 'gameover'; 
+              this.callbacks.onStateChange(this.state); 
+              // Keep BGM playing for game over screen (dashboard stage)
+              return; 
+            }
           }
         }
       }
@@ -710,7 +857,12 @@ export class GameEngine {
         if (p.hitEnemies.has(enemy.id)) continue;
         if (this.getDist(p.pos, enemy.pos) < p.radius + enemy.radius) {
           enemy.hp -= p.damage; p.hitEnemies.add(enemy.id); p.pierce--;
-          enemy.knockback.x += p.vel.x * 0.1; enemy.knockback.y += p.vel.y * 0.1;
+          let kbMult = 0.1;
+          if (this.player.characterId === 'gazza') {
+            kbMult = 0.2; // Knockback: Attacks push enemies back further
+            if (Math.random() < 0.2) this.spawnParticle({ x: enemy.pos.x, y: enemy.pos.y - 20 }, { x: 0, y: -30 }, '#e74c3c', 16, 0.4, 'BAM!');
+          }
+          enemy.knockback.x += p.vel.x * kbMult; enemy.knockback.y += p.vel.y * kbMult;
           for (let k = 0; k < 3; k++) this.spawnParticle(enemy.pos, { x: (Math.random() - 0.5) * 100, y: (Math.random() - 0.5) * 100 }, '#ff0000', 3, 0.3);
           if (enemy.hp <= 0) { this.killEnemy(enemy); this.enemies.splice(j, 1); }
           if (p.pierce <= 0) { this.projectiles.splice(i, 1); hit = true; break; }
@@ -730,7 +882,9 @@ export class GameEngine {
         c.pos.x += Math.cos(angle) * speed * dt; c.pos.y += Math.sin(angle) * speed * dt;
         if (dist < this.player.radius + c.radius) {
           if (c.type === 'pie') {
-            this.player.hp = Math.min(this.player.maxHp, this.player.hp + 20);
+            let healAmount = 20;
+            if (this.player.characterId === 'shazza') healAmount = 40; // Starting Buff: Pies heal for 40 HP
+            this.player.hp = Math.min(this.player.maxHp, this.player.hp + healAmount);
             this.player.pies++;
           } else if (c.type === 'beer') {
             this.player.hp = Math.min(this.player.maxHp, this.player.hp + 50);
@@ -780,8 +934,20 @@ export class GameEngine {
             this.applyUpgrade(randomUpgrade.id);
             for (let k = 0; k < 20; k++) this.spawnParticle(this.player.pos, { x: (Math.random() - 0.5) * 200, y: (Math.random() - 0.5) * 200 }, '#9b59b6', 8, 0.6);
           } else {
-            this.player.xp += c.value;
-            this.player.gems += c.value;
+            let xpGained = c.value;
+            let gemsGained = c.value;
+            
+            if (this.player.characterId === 'dave') {
+              xpGained *= 1.2; // Gold Rush: 20% more XP
+              if (Math.random() < 0.1) this.spawnParticle({ x: this.player.pos.x, y: this.player.pos.y - 20 }, { x: 0, y: -20 }, '#f1c40f', 14, 0.5, '+XP');
+            }
+            if (this.player.characterId === 'kev' && Math.random() < 0.1) {
+              gemsGained *= 2; // Lucky Find: 10% chance for double gems
+              this.spawnParticle({ x: this.player.pos.x, y: this.player.pos.y - 20 }, { x: 0, y: -20 }, '#2ecc71', 16, 0.5, 'DOUBLE!');
+            }
+
+            this.player.xp += xpGained;
+            this.player.gems += gemsGained;
             this.playSound(sfxGem, 0.2);
           }
           if (c.type !== 'gem_blue' && c.type !== 'gem_green') {
@@ -801,8 +967,8 @@ export class GameEngine {
     }
   }
 
-  spawnParticle(pos: Vector2, vel: Vector2, color: string, size: number, life: number) {
-    this.particles.push({ pos: { ...pos }, vel: { ...vel }, color, size, life, maxLife: life });
+  spawnParticle(pos: Vector2, vel: Vector2, color: string, size: number, life: number, text?: string) {
+    this.particles.push({ pos: { ...pos }, vel: { ...vel }, color, size, life, maxLife: life, text });
   }
 
   spawnEnemies(dt: number) {
@@ -892,7 +1058,7 @@ export class GameEngine {
     if (this.player.xp >= this.player.xpToNext) {
       this.player.xp -= this.player.xpToNext; this.player.level++; this.player.xpToNext = Math.floor(this.player.xpToNext * 1.5);
       this.playSound(sfxLevelUp, 0.6);
-      this.state = 'levelup'; this.callbacks.onStateChange(this.state); this.pause();
+      this.state = 'levelup'; this.callbacks.onStateChange(this.state); this.pause(false);
       this.callbacks.onLevelUp(this.generateUpgrades());
     }
   }
@@ -1232,6 +1398,17 @@ export class GameEngine {
     // Shadow
     ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(0, 25, 20, 8, 0, 0, Math.PI * 2); ctx.fill();
     
+    // Safety Zone Indicator for Steve
+    if (this.player.characterId === 'steve' && !this.player.isMoving) {
+      ctx.fillStyle = 'rgba(0, 255, 0, 0.2)';
+      ctx.beginPath();
+      ctx.arc(0, 0, this.player.radius * 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+    
     // Exclusive Weapon Slash Aura
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)'; ctx.lineWidth = 4;
     ctx.beginPath(); ctx.arc(0, 0, this.weapons.exclusive.radius * 0.8, this.weapons.exclusive.angle - Math.PI / 4, this.weapons.exclusive.angle + Math.PI / 4); ctx.stroke();
@@ -1315,7 +1492,13 @@ export class GameEngine {
     // Draw Particles
     for (const p of this.particles) {
       ctx.fillStyle = p.color; ctx.globalAlpha = p.life / p.maxLife;
-      ctx.beginPath(); ctx.arc(p.pos.x, p.pos.y, p.size, 0, Math.PI * 2); ctx.fill();
+      if (p.text) {
+        ctx.font = `bold ${p.size}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.fillText(p.text, p.pos.x, p.pos.y);
+      } else {
+        ctx.beginPath(); ctx.arc(p.pos.x, p.pos.y, p.size, 0, Math.PI * 2); ctx.fill();
+      }
       ctx.globalAlpha = 1.0;
     }
 

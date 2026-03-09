@@ -93,7 +93,9 @@ export default function App() {
         name: `Miner ${characters.length}`, 
         img: url,
         description: 'A custom miner.',
-        stats: { hp: 100, speed: 200, damageMultiplier: 1 }
+        stats: { hp: 100, speed: 200, damageMultiplier: 1 },
+        startingBuff: '',
+        specialSkill: ''
       };
       setCharacters(prev => [...prev, newChar]);
       setSelectedCharacterId(newChar.id);
@@ -326,6 +328,16 @@ export default function App() {
                       <span className="text-[10px] text-white font-bold">{char.stats.speed}</span>
                     </div>
                   </div>
+                  {char.startingBuff && (
+                    <div className="text-[9px] md:text-[10px] text-[#A3E635] text-center w-32 md:w-40 leading-tight mt-1 font-mono">
+                      {char.startingBuff}
+                    </div>
+                  )}
+                  {char.specialSkill && (
+                    <div className="text-[9px] md:text-[10px] text-[#FCD34D] text-center w-32 md:w-40 leading-tight mt-1 font-mono">
+                      {char.specialSkill}
+                    </div>
+                  )}
                 </div>
               ))}
               
