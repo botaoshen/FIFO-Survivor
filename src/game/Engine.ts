@@ -10,6 +10,11 @@ const enemy5 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968322/en
 const enemy6 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968323/enemy6_lcbgz7.png';
 const enemy7 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968324/enemy7_fbqunu.png';
 
+const gemImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1773018790/diamond_2_w69ojw.png';
+const pieImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1773018791/pie_xns3v6.png';
+const redbullImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1773018790/redbull_oxiyax.png';
+const pickImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1773029911/pick_s5igm2.png';
+
 const prop1 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968885/prop1_xxwq96.png';
 const prop2 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968888/prop2_hzro4w.png';
 const prop3 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968889/prop3_rkhheg.png';
@@ -124,6 +129,15 @@ export class GameEngine {
   enemyImages: HTMLImageElement[] = [];
   enemiesLoaded: boolean[] = [false, false, false, false, false, false, false];
 
+  gemImage: HTMLImageElement;
+  gemLoaded: boolean = false;
+  pieImage: HTMLImageElement;
+  pieLoaded: boolean = false;
+  redbullImage: HTMLImageElement;
+  redbullLoaded: boolean = false;
+  pickImage: HTMLImageElement;
+  pickLoaded: boolean = false;
+
   bgm: HTMLAudioElement;
   bgmEnabled: boolean = true;
 
@@ -169,6 +183,22 @@ export class GameEngine {
       img.onload = () => { this.enemiesLoaded[i] = true; };
       this.enemyImages.push(img);
     }
+
+    this.gemImage = new Image();
+    this.gemImage.src = gemImg;
+    this.gemImage.onload = () => { this.gemLoaded = true; };
+
+    this.pieImage = new Image();
+    this.pieImage.src = pieImg;
+    this.pieImage.onload = () => { this.pieLoaded = true; };
+
+    this.redbullImage = new Image();
+    this.redbullImage.src = redbullImg;
+    this.redbullImage.onload = () => { this.redbullLoaded = true; };
+
+    this.pickImage = new Image();
+    this.pickImage.src = pickImg;
+    this.pickImage.onload = () => { this.pickLoaded = true; };
 
     this.handleKeyDown = this.handleKeyDown.bind(this); this.handleKeyUp = this.handleKeyUp.bind(this);
     this.handleResize = this.handleResize.bind(this); this.loop = this.loop.bind(this);
@@ -248,7 +278,14 @@ export class GameEngine {
     }
   }
 
-  handleKeyDown(e: KeyboardEvent) { this.keys[e.key.toLowerCase()] = true; }
+  handleKeyDown(e: KeyboardEvent) { 
+    const key = e.key.toLowerCase();
+    if (!this.keys[key] && (e.code === 'Space' || e.key === ' ')) {
+      e.preventDefault();
+      this.togglePause();
+    }
+    this.keys[key] = true; 
+  }
   handleKeyUp(e: KeyboardEvent) { this.keys[e.key.toLowerCase()] = false; }
   
   handleTouchStart(e: TouchEvent) {
@@ -898,49 +935,79 @@ export class GameEngine {
     // Draw Collectibles
     for (const c of this.collectibles) {
       ctx.save(); ctx.translate(c.pos.x, c.pos.y);
-      const scale = c.type === 'pie' ? 0.15 : 0.5;
-      if (!this.drawSprite(c.type, 0, 0, 0, scale)) {
-        if (c.type === 'pie') {
-          ctx.scale(0.5, 0.5);
-          ctx.fillStyle = '#d2a679'; ctx.beginPath(); ctx.ellipse(0, 0, 12, 8, 0, 0, Math.PI * 2); ctx.fill();
-          ctx.fillStyle = '#a64dff'; ctx.beginPath(); ctx.ellipse(0, -2, 10, 6, 0, 0, Math.PI * 2); ctx.fill(); // Meat filling
-          ctx.strokeStyle = '#8b5a2b'; ctx.lineWidth = 2; ctx.stroke();
-        } else if (c.type === 'beer') {
-          // Draw beer bottle
-          ctx.shadowBlur = 10; ctx.shadowColor = '#f1c40f';
-          ctx.fillStyle = '#8b4513'; ctx.fillRect(-5, -8, 10, 18); // body
-          ctx.fillStyle = '#deb887'; ctx.fillRect(-2, -14, 4, 6); // neck
-          ctx.fillStyle = '#fff'; ctx.fillRect(-5, -4, 10, 6); // label
-          ctx.shadowBlur = 0;
-        } else if (c.type === 'coffee') {
-          // Draw coffee cup
-          ctx.shadowBlur = 10; ctx.shadowColor = '#fff';
-          ctx.fillStyle = '#f5f5f5'; ctx.beginPath(); ctx.moveTo(-8, -10); ctx.lineTo(8, -10); ctx.lineTo(6, 10); ctx.lineTo(-6, 10); ctx.closePath(); ctx.fill();
-          ctx.fillStyle = '#6f4e37'; ctx.fillRect(-5, -7, 10, 3); // coffee
-          ctx.shadowBlur = 0;
-        } else if (c.type === 'magnet') {
-          // Draw U-magnet
-          ctx.shadowBlur = 10; ctx.shadowColor = '#3498db';
-          ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(0, 0, 10, Math.PI, 0); ctx.stroke();
-          ctx.fillStyle = '#bdc3c7'; ctx.fillRect(-13, 0, 6, 6); ctx.fillRect(7, 0, 6, 6);
-          ctx.shadowBlur = 0;
-        } else if (c.type === 'dynamite') {
-          // Draw dynamite stick
-          ctx.shadowBlur = 10; ctx.shadowColor = '#e67e22';
-          ctx.fillStyle = '#c0392b'; ctx.fillRect(-6, -12, 12, 24);
-          ctx.strokeStyle = '#f1c40f'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, -12); ctx.lineTo(0, -18); ctx.stroke();
-          ctx.shadowBlur = 0;
-        } else if (c.type === 'mystery_box') {
-          // Draw mystery box
-          ctx.shadowBlur = 15; ctx.shadowColor = '#9b59b6';
-          ctx.fillStyle = '#8e44ad'; ctx.fillRect(-10, -10, 20, 20);
-          ctx.strokeStyle = '#f1c40f'; ctx.lineWidth = 2; ctx.strokeRect(-10, -10, 20, 20);
-          ctx.fillStyle = '#f1c40f'; ctx.font = 'bold 14px Arial'; ctx.textAlign = 'center'; ctx.fillText('?', 0, 5);
-          ctx.shadowBlur = 0;
-        } else {
-          ctx.fillStyle = c.type === 'gem_blue' ? '#00ccff' : '#00ff00';
-          ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(8, 0); ctx.lineTo(0, 10); ctx.lineTo(-8, 0); ctx.closePath();
-          ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
+      
+      let drawn = false;
+      if (c.type === 'gem_blue' || c.type === 'gem_green') {
+        if (this.gemLoaded) {
+          const scale = 0.12;
+          ctx.drawImage(this.gemImage, -this.gemImage.width * scale / 2, -this.gemImage.height * scale / 2, this.gemImage.width * scale, this.gemImage.height * scale);
+          drawn = true;
+        }
+      } else if (c.type === 'pie') {
+        if (this.pieLoaded) {
+          const scale = 0.3;
+          ctx.drawImage(this.pieImage, -this.pieImage.width * scale / 2, -this.pieImage.height * scale / 2, this.pieImage.width * scale, this.pieImage.height * scale);
+          drawn = true;
+        }
+      } else if (c.type === 'beer') {
+        if (this.redbullLoaded) {
+          const scale = 0.3;
+          ctx.drawImage(this.redbullImage, -this.redbullImage.width * scale / 2, -this.redbullImage.height * scale / 2, this.redbullImage.width * scale, this.redbullImage.height * scale);
+          drawn = true;
+        }
+      } else if (c.type === 'magnet') {
+        if (this.pickLoaded) {
+          const scale = 0.3;
+          ctx.drawImage(this.pickImage, -this.pickImage.width * scale / 2, -this.pickImage.height * scale / 2, this.pickImage.width * scale, this.pickImage.height * scale);
+          drawn = true;
+        }
+      }
+
+      if (!drawn) {
+        const scale = c.type === 'pie' ? 0.15 : 0.5;
+        if (!this.drawSprite(c.type, 0, 0, 0, scale)) {
+          if (c.type === 'pie') {
+            ctx.scale(0.5, 0.5);
+            ctx.fillStyle = '#d2a679'; ctx.beginPath(); ctx.ellipse(0, 0, 12, 8, 0, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#a64dff'; ctx.beginPath(); ctx.ellipse(0, -2, 10, 6, 0, 0, Math.PI * 2); ctx.fill(); // Meat filling
+            ctx.strokeStyle = '#8b5a2b'; ctx.lineWidth = 2; ctx.stroke();
+          } else if (c.type === 'beer') {
+            // Draw beer bottle
+            ctx.shadowBlur = 10; ctx.shadowColor = '#f1c40f';
+            ctx.fillStyle = '#8b4513'; ctx.fillRect(-5, -8, 10, 18); // body
+            ctx.fillStyle = '#deb887'; ctx.fillRect(-2, -14, 4, 6); // neck
+            ctx.fillStyle = '#fff'; ctx.fillRect(-5, -4, 10, 6); // label
+            ctx.shadowBlur = 0;
+          } else if (c.type === 'coffee') {
+            // Draw coffee cup
+            ctx.shadowBlur = 10; ctx.shadowColor = '#fff';
+            ctx.fillStyle = '#f5f5f5'; ctx.beginPath(); ctx.moveTo(-8, -10); ctx.lineTo(8, -10); ctx.lineTo(6, 10); ctx.lineTo(-6, 10); ctx.closePath(); ctx.fill();
+            ctx.fillStyle = '#6f4e37'; ctx.fillRect(-5, -7, 10, 3); // coffee
+            ctx.shadowBlur = 0;
+          } else if (c.type === 'magnet') {
+            // Draw U-magnet
+            ctx.shadowBlur = 10; ctx.shadowColor = '#3498db';
+            ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(0, 0, 10, Math.PI, 0); ctx.stroke();
+            ctx.fillStyle = '#bdc3c7'; ctx.fillRect(-13, 0, 6, 6); ctx.fillRect(7, 0, 6, 6);
+            ctx.shadowBlur = 0;
+          } else if (c.type === 'dynamite') {
+            // Draw dynamite stick
+            ctx.shadowBlur = 10; ctx.shadowColor = '#e67e22';
+            ctx.fillStyle = '#c0392b'; ctx.fillRect(-6, -12, 12, 24);
+            ctx.strokeStyle = '#f1c40f'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, -12); ctx.lineTo(0, -18); ctx.stroke();
+            ctx.shadowBlur = 0;
+          } else if (c.type === 'mystery_box') {
+            // Draw mystery box
+            ctx.shadowBlur = 15; ctx.shadowColor = '#9b59b6';
+            ctx.fillStyle = '#8e44ad'; ctx.fillRect(-10, -10, 20, 20);
+            ctx.strokeStyle = '#f1c40f'; ctx.lineWidth = 2; ctx.strokeRect(-10, -10, 20, 20);
+            ctx.fillStyle = '#f1c40f'; ctx.font = 'bold 14px Arial'; ctx.textAlign = 'center'; ctx.fillText('?', 0, 5);
+            ctx.shadowBlur = 0;
+          } else {
+            ctx.fillStyle = c.type === 'gem_blue' ? '#00ccff' : '#00ff00';
+            ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(8, 0); ctx.lineTo(0, 10); ctx.lineTo(-8, 0); ctx.closePath();
+            ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
+          }
         }
       }
       ctx.restore();

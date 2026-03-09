@@ -11,9 +11,12 @@ const dashBg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968885/da
 const prop1 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968885/prop1_xxwq96.png';
 const prop2 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968888/prop2_hzro4w.png';
 const prop3 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968889/prop3_rkhheg.png';
+const gemStatusIcon = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1773018790/diamond_cl74ut.png';
+const pieIcon = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1773018791/pie_xns3v6.png';
+const pickIcon = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1773029911/pick_s5igm2.png';
 
 const iconMap: Record<string, React.ReactNode> = {
-  'pickaxe': <img src={prop1} alt="Pickaxe" className="w-6 h-6 object-contain drop-shadow-md" />,
+  'pickaxe': <img src={pickIcon} alt="Pickaxe" className="w-6 h-6 object-contain drop-shadow-md" />,
   'cone': <img src={prop2} alt="Cone" className="w-6 h-6 object-contain drop-shadow-md" />,
   'pie': <img src={prop3} alt="Pie" className="w-6 h-6 object-contain drop-shadow-md" />,
   'zap': <Zap className="w-8 h-8 text-yellow-400" />,
@@ -42,6 +45,9 @@ export default function App() {
     { id: 'kev', name: 'Kev', url: kevImg },
     { id: 'shazza', name: 'Shazza the Cook', url: shazzaImg },
     { id: 'steve', name: 'Steve the Safety Officer', url: steveImg },
+    { id: 'miner1', name: 'Tough Sheila', url: '/miner-1.png' },
+    { id: 'miner2', name: 'Old Mate', url: '/miner-2.png' },
+    { id: 'miner3', name: 'Muscular Gazza', url: '/miner-3.png' },
   ]);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string>('dave');
   const [isBgmEnabled, setIsBgmEnabled] = useState(true);
@@ -136,9 +142,7 @@ export default function App() {
                 </div>
               </div>
               <div className="flex items-center bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] border-4 border-[#2D1A11] rounded-xl px-4 h-12 shadow-lg">
-                <div className="w-6 h-6 bg-[#ebcb8b] rounded-full mr-2 border-2 border-[#d08770] flex items-center justify-center">
-                  <div className="w-3 h-3 bg-[#d08770] rounded-full"></div>
-                </div>
+                <img src={gemStatusIcon} alt="Gems" className="w-8 h-8 object-contain mr-2 drop-shadow-md" />
                 <span className="text-[#F4D0A4] font-bold text-xl" style={{ WebkitTextStroke: '1px #2D1A11' }}>{stats.gems}</span>
               </div>
             </div>
@@ -166,7 +170,7 @@ export default function App() {
                 />
               </div>
               <div className="flex items-center bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] border-4 border-[#2D1A11] rounded-xl px-4 h-12 shadow-lg">
-                <PieChart className="w-6 h-6 text-[#F4D0A4] mr-2 fill-[#F4D0A4]" />
+                <img src={pieIcon} alt="Pies" className="w-8 h-8 object-contain mr-1 drop-shadow-md" />
                 <span className="text-[#F4D0A4] font-bold text-xl" style={{ WebkitTextStroke: '1px #2D1A11' }}>{stats.pies}</span>
               </div>
               <button onClick={() => startGame()} className="w-12 h-12 bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] border-4 border-[#2D1A11] rounded-xl flex items-center justify-center pointer-events-auto hover:from-[#9C6A53] hover:to-[#6C4A31] shadow-lg">
