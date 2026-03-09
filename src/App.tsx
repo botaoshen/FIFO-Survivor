@@ -408,20 +408,32 @@ export default function App() {
           </div>
 
           {/* Bottom Section: Start Button */}
-          <button 
-            onClick={startGame}
-            className="relative group mt-auto mb-8 px-16 py-4 bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] hover:from-[#9C6A50] hover:to-[#6B3A20] border-4 border-[#2D1A11] rounded-xl transition-all shadow-[0_10px_20px_rgba(0,0,0,0.6)] hover:scale-105 pointer-events-auto active:scale-95"
-          >
-            {/* Rivets */}
-            <div className="absolute top-2 left-2 w-3 h-3 rounded-full bg-[#4A2F1D] border-2 border-[#1A0F09] shadow-inner"></div>
-            <div className="absolute top-2 right-2 w-3 h-3 rounded-full bg-[#4A2F1D] border-2 border-[#1A0F09] shadow-inner"></div>
-            <div className="absolute bottom-2 left-2 w-3 h-3 rounded-full bg-[#4A2F1D] border-2 border-[#1A0F09] shadow-inner"></div>
-            <div className="absolute bottom-2 right-2 w-3 h-3 rounded-full bg-[#4A2F1D] border-2 border-[#1A0F09] shadow-inner"></div>
-            
-            <span className="text-4xl font-black text-[#F4D0A4] tracking-widest uppercase" style={{ WebkitTextStroke: '1.5px #2D1A11', textShadow: '0 4px 4px rgba(0,0,0,0.5)' }}>
-              START SHIFT
-            </span>
-          </button>
+          <div className="flex flex-col md:flex-row gap-4 mt-auto mb-8 items-center z-10">
+            <button 
+              onClick={() => setShowLeaderboard(true)}
+              className="relative group px-8 py-4 bg-gradient-to-b from-[#3498db] to-[#2980b9] hover:from-[#5dade2] hover:to-[#3498db] border-4 border-[#2D1A11] rounded-xl transition-all shadow-[0_10px_20px_rgba(0,0,0,0.6)] hover:scale-105 pointer-events-auto active:scale-95 flex items-center gap-3 h-full"
+            >
+              <Trophy className="w-8 h-8 text-yellow-400 drop-shadow-md" />
+              <span className="text-2xl font-black text-[#F4D0A4] tracking-widest uppercase" style={{ WebkitTextStroke: '1px #2D1A11', textShadow: '0 4px 4px rgba(0,0,0,0.5)' }}>
+                TOP MINERS
+              </span>
+            </button>
+
+            <button 
+              onClick={() => startGame()}
+              className="relative group px-16 py-4 bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] hover:from-[#9C6A50] hover:to-[#6B3A20] border-4 border-[#2D1A11] rounded-xl transition-all shadow-[0_10px_20px_rgba(0,0,0,0.6)] hover:scale-105 pointer-events-auto active:scale-95"
+            >
+              {/* Rivets */}
+              <div className="absolute top-2 left-2 w-3 h-3 rounded-full bg-[#4A2F1D] border-2 border-[#1A0F09] shadow-inner"></div>
+              <div className="absolute top-2 right-2 w-3 h-3 rounded-full bg-[#4A2F1D] border-2 border-[#1A0F09] shadow-inner"></div>
+              <div className="absolute bottom-2 left-2 w-3 h-3 rounded-full bg-[#4A2F1D] border-2 border-[#1A0F09] shadow-inner"></div>
+              <div className="absolute bottom-2 right-2 w-3 h-3 rounded-full bg-[#4A2F1D] border-2 border-[#1A0F09] shadow-inner"></div>
+              
+              <span className="text-4xl font-black text-[#F4D0A4] tracking-widest uppercase" style={{ WebkitTextStroke: '1.5px #2D1A11', textShadow: '0 4px 4px rgba(0,0,0,0.5)' }}>
+                START SHIFT
+              </span>
+            </button>
+          </div>
 
           {/* Credits & Site Link */}
           <div className="absolute top-2 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-auto z-[100]">
@@ -458,6 +470,65 @@ export default function App() {
               onChange={handleVolumeChange}
               className="w-20 md:w-32 h-1 accent-[#F4D0A4] cursor-pointer"
             />
+          </div>
+        </div>
+      )}
+
+      {/* Leaderboard Modal */}
+      {gameState === 'menu' && showLeaderboard && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm z-[200] p-4">
+          <div className="relative bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] p-6 md:p-8 rounded-2xl border-4 border-[#2D1A11] max-w-lg w-full shadow-[0_10px_20px_rgba(0,0,0,0.6)] flex flex-col max-h-[80vh]">
+            <div className="absolute top-2 left-2 w-3 h-3 rounded-full bg-[#4A2F1D] border-2 border-[#1A0F09] shadow-inner"></div>
+            <div className="absolute top-2 right-2 w-3 h-3 rounded-full bg-[#4A2F1D] border-2 border-[#1A0F09] shadow-inner"></div>
+            <div className="absolute bottom-2 left-2 w-3 h-3 rounded-full bg-[#4A2F1D] border-2 border-[#1A0F09] shadow-inner"></div>
+            <div className="absolute bottom-2 right-2 w-3 h-3 rounded-full bg-[#4A2F1D] border-2 border-[#1A0F09] shadow-inner"></div>
+
+            <div className="flex justify-between items-center mb-6 border-b-4 border-[#2D1A11] pb-4">
+              <h2 className="text-3xl md:text-4xl font-black text-[#F4D0A4] uppercase tracking-widest flex items-center gap-3" style={{ WebkitTextStroke: '1.5px #2D1A11', textShadow: '0 4px 4px rgba(0,0,0,0.5)' }}>
+                <Trophy className="w-8 h-8 text-yellow-400 drop-shadow-md" />
+                TOP MINERS
+              </h2>
+              <button 
+                onClick={() => setShowLeaderboard(false)}
+                className="w-10 h-10 bg-[#e74c3c] hover:bg-[#ff6b6b] border-2 border-[#2D1A11] rounded-lg flex items-center justify-center text-white font-black shadow-lg transition-colors pointer-events-auto"
+              >
+                X
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3 pointer-events-auto">
+              {leaderboard.length === 0 ? (
+                <div className="text-[#F4D0A4] text-center font-bold py-8 opacity-70">
+                  No scores recorded yet. Be the first!
+                </div>
+              ) : (
+                leaderboard.map((entry, index) => (
+                  <div key={index} className="flex items-center justify-between bg-[#3A2215] p-3 md:p-4 rounded-xl border-2 border-[#1A0F09] shadow-inner">
+                    <div className="flex items-center gap-3 md:gap-4">
+                      <div className={`w-8 h-8 flex items-center justify-center rounded-full border-2 border-[#1A0F09] font-black text-sm ${
+                        index === 0 ? 'bg-yellow-400 text-[#2D1A11]' : 
+                        index === 1 ? 'bg-gray-300 text-[#2D1A11]' : 
+                        index === 2 ? 'bg-amber-600 text-white' : 
+                        'bg-[#4A2F1D] text-[#F4D0A4]'
+                      }`}>
+                        {index + 1}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[#F4D0A4] font-black text-base md:text-lg uppercase tracking-wider" style={{ WebkitTextStroke: '0.5px #1A0F09' }}>
+                          {entry.name}
+                        </span>
+                        <span className="text-[#A88A72] text-xs font-bold">
+                          {characters.find(c => c.id === entry.characterId)?.name || 'Unknown Miner'}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-[#2ecc71] font-black text-xl md:text-2xl" style={{ WebkitTextStroke: '1px #1A0F09' }}>
+                      {entry.score.toLocaleString()}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       )}
