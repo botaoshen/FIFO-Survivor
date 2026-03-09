@@ -1,6 +1,13 @@
 const flyImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968324/fly_mrzgq4.png';
 const groundImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968886/ground_texture_klpu1s.png';
 const daveImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772965522/Dave_the_miner_akwikr.png';
+const touchSheilaImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1773065040/touch_shila_tlkv0y.png';
+const oldMateImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1773065039/old_mate_rse2hh.png';
+const muscularGazzaImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1773058239/Muscle_Gaza_zdzzqu.png';
+const bigKevImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772965523/big_kev_cyuxkl.png';
+const kevImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772965523/Kev_pqjaue.png';
+const shazzaImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772965523/Shazza_the_camp_cook_wm3uby.png';
+const steveImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772965618/steve_the_safety_officer_zssekj.png';
 
 const enemy1 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968321/enemy1_psbc1j.png';
 const enemy2 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968321/enemy2_widf0y.png';
@@ -14,6 +21,9 @@ const gemImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1773018790/di
 const pieImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1773018791/pie_xns3v6.png';
 const redbullImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1773018790/redbull_oxiyax.png';
 const pickImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1773029911/pick_s5igm2.png';
+const dynoImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1773058566/dyno_xgqobq.png';
+const selfRescueImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1773058679/self_rescue_zsp9ce.png';
+const gumbootsImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1773058723/gumboots_m5jxwd.png';
 
 const prop1 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968885/prop1_xxwq96.png';
 const prop2 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968888/prop2_hzro4w.png';
@@ -21,6 +31,12 @@ const prop3 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968889/pro
 const prop4 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968889/prop4_g6sgih.png';
 const prop5 = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772968891/prop5_uyla8p.png';
 const bgmAudio = 'https://res.cloudinary.com/dhc60qvv3/video/upload/v1772968905/bgm_ek7r3n.mp3';
+const sfxHit = 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3';
+const sfxGem = 'https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3';
+const sfxItem = 'https://assets.mixkit.co/active_storage/sfx/2017/2017-preview.mp3';
+const sfxLevelUp = 'https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3';
+const sfxDeath = 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3';
+const sfxAttack = 'https://assets.mixkit.co/active_storage/sfx/2570/2570-preview.mp3';
 
 export type GameState = 'menu' | 'playing' | 'levelup' | 'gameover' | 'paused';
 
@@ -56,7 +72,7 @@ export interface Projectile {
 }
 
 export interface Collectible {
-  id: number; pos: Vector2; type: 'gem_blue' | 'gem_green' | 'pie' | 'beer' | 'coffee' | 'magnet' | 'dynamite' | 'mystery_box';
+  id: number; pos: Vector2; type: 'gem_blue' | 'gem_green' | 'pie' | 'beer' | 'coffee' | 'magnet' | 'dynamite' | 'mystery_box' | 'dyno' | 'self_rescue' | 'gumboots';
   value: number; radius: number;
 }
 
@@ -69,6 +85,77 @@ export interface Prop {
 }
 
 export interface UpgradeOption { id: string; title: string; description: string; icon: string; }
+
+export interface Character {
+  id: string;
+  name: string;
+  img: string;
+  description: string;
+  stats: {
+    hp: number;
+    speed: number;
+    damageMultiplier: number;
+  };
+}
+
+export const CHARACTERS: Character[] = [
+  {
+    id: 'dave',
+    name: 'Dave the Miner',
+    img: daveImg,
+    description: 'A reliable miner. Balanced stats.',
+    stats: { hp: 100, speed: 200, damageMultiplier: 1 }
+  },
+  {
+    id: 'sheila',
+    name: 'Touch Sheila',
+    img: touchSheilaImg,
+    description: 'Fast and agile, but less HP.',
+    stats: { hp: 80, speed: 250, damageMultiplier: 1.1 }
+  },
+  {
+    id: 'oldmate',
+    name: 'Old Mate',
+    img: oldMateImg,
+    description: 'Experienced and tough. High HP.',
+    stats: { hp: 150, speed: 180, damageMultiplier: 0.9 }
+  },
+  {
+    id: 'gazza',
+    name: 'Muscular Gazza',
+    img: muscularGazzaImg,
+    description: 'Pure power. High damage.',
+    stats: { hp: 120, speed: 190, damageMultiplier: 1.3 }
+  },
+  {
+    id: 'bigkev',
+    name: 'Big Kev',
+    img: bigKevImg,
+    description: 'A massive unit. Huge HP and damage.',
+    stats: { hp: 200, speed: 150, damageMultiplier: 1.5 }
+  },
+  {
+    id: 'kev',
+    name: 'Kev',
+    img: kevImg,
+    description: 'Just Kev. Pretty average.',
+    stats: { hp: 100, speed: 200, damageMultiplier: 1 }
+  },
+  {
+    id: 'shazza',
+    name: 'Shazza the Cook',
+    img: shazzaImg,
+    description: 'Always has a snack. Heals faster.',
+    stats: { hp: 110, speed: 210, damageMultiplier: 0.9 }
+  },
+  {
+    id: 'steve',
+    name: 'Steve the Safety Officer',
+    img: steveImg,
+    description: 'Safety first. Higher defense (simulated by HP).',
+    stats: { hp: 140, speed: 190, damageMultiplier: 0.8 }
+  }
+];
 
 export interface GameCallbacks {
   onStateChange: (state: GameState) => void;
@@ -106,17 +193,20 @@ export class GameEngine {
   bossSpawnTimer: number = 60;
   difficultyMultiplier: number = 1.0; nextId = 1;
   specialItemSpawnTimer: number = 15;
+  hitSoundTimer: number = 0;
 
   buffs = {
     speedBoost: 0,
     damageBoost: 0,
+    invincibility: 0,
   };
 
   spriteSheet: HTMLImageElement;
   spritesLoaded: boolean = false;
-  davoSpriteSheet: HTMLImageElement;
-  davoSpritesLoaded: boolean = false;
-  isSingleImageDavo: boolean = false;
+  characterImages: Record<string, HTMLImageElement> = {};
+  charactersLoaded: Record<string, boolean> = {};
+  selectedCharacter: Character = CHARACTERS[0];
+  isSingleImageDavo: boolean = true;
   flySpriteSheet: HTMLImageElement;
   flySpritesLoaded: boolean = false;
   groundTexture: HTMLImageElement;
@@ -137,9 +227,45 @@ export class GameEngine {
   redbullLoaded: boolean = false;
   pickImage: HTMLImageElement;
   pickLoaded: boolean = false;
+  dynoImage: HTMLImageElement;
+  dynoLoaded: boolean = false;
+  selfRescueImage: HTMLImageElement;
+  selfRescueLoaded: boolean = false;
+  gumbootsImage: HTMLImageElement;
+  gumbootsLoaded: boolean = false;
 
   bgm: HTMLAudioElement;
   bgmEnabled: boolean = true;
+
+  playSound(src: string, volume: number = 0.5) {
+    if (!this.bgmEnabled) return;
+    const audio = new Audio(src);
+    audio.volume = volume;
+    audio.play().catch(() => {});
+  }
+
+  customCharacters: Record<string, Character> = {};
+
+  selectCharacter(id: string) {
+    const char = CHARACTERS.find(c => c.id === id) || this.customCharacters[id];
+    if (char) {
+      this.selectedCharacter = char;
+      this.player.hp = char.stats.hp;
+      this.player.maxHp = char.stats.hp;
+      this.player.speed = char.stats.speed;
+      this.player.damageMultiplier = char.stats.damageMultiplier;
+      this.player.characterId = char.id;
+      this.updateStats();
+    }
+  }
+
+  addCustomCharacter(char: Character) {
+    this.customCharacters[char.id] = char;
+    const img = new Image();
+    img.src = char.img;
+    img.onload = () => { this.charactersLoaded[char.id] = true; };
+    this.characterImages[char.id] = img;
+  }
 
   constructor(canvas: HTMLCanvasElement, callbacks: GameCallbacks) {
     this.canvas = canvas; this.ctx = canvas.getContext('2d')!; this.callbacks = callbacks;
@@ -149,11 +275,12 @@ export class GameEngine {
     // this.spriteSheet.src = '/sprites.png';
     this.spriteSheet.onload = () => { this.spritesLoaded = true; };
 
-    this.davoSpriteSheet = new Image();
-    // Use imported daveImg as the default
-    this.davoSpriteSheet.src = daveImg;
-    this.isSingleImageDavo = true; // dave_the_miner.png is a single image
-    this.davoSpriteSheet.onload = () => { this.davoSpritesLoaded = true; };
+    CHARACTERS.forEach(char => {
+      const img = new Image();
+      img.src = char.img;
+      img.onload = () => { this.charactersLoaded[char.id] = true; };
+      this.characterImages[char.id] = img;
+    });
 
     this.flySpriteSheet = new Image();
     this.flySpriteSheet.src = flyImg;
@@ -199,6 +326,18 @@ export class GameEngine {
     this.pickImage = new Image();
     this.pickImage.src = pickImg;
     this.pickImage.onload = () => { this.pickLoaded = true; };
+
+    this.dynoImage = new Image();
+    this.dynoImage.src = dynoImg;
+    this.dynoImage.onload = () => { this.dynoLoaded = true; };
+
+    this.selfRescueImage = new Image();
+    this.selfRescueImage.src = selfRescueImg;
+    this.selfRescueImage.onload = () => { this.selfRescueLoaded = true; };
+
+    this.gumbootsImage = new Image();
+    this.gumbootsImage.src = gumbootsImg;
+    this.gumbootsImage.onload = () => { this.gumbootsLoaded = true; };
 
     this.handleKeyDown = this.handleKeyDown.bind(this); this.handleKeyUp = this.handleKeyUp.bind(this);
     this.handleResize = this.handleResize.bind(this); this.loop = this.loop.bind(this);
@@ -250,31 +389,11 @@ export class GameEngine {
     window.removeEventListener('touchcancel', this.handleTouchEnd);
   }
 
-  setCustomSpriteSheet(type: 'sprites' | 'davo' | 'single_davo', url: string) {
+  setCustomSpriteSheet(type: 'sprites', url: string) {
     if (type === 'sprites') {
       this.spriteSheet.src = url;
       this.spriteSheet.onload = () => { this.spritesLoaded = true; };
       this.spriteSheet.onerror = () => { this.spritesLoaded = false; };
-    } else if (type === 'davo') {
-      if (!url) {
-        this.davoSpritesLoaded = false;
-        this.isSingleImageDavo = false;
-        return;
-      }
-      this.isSingleImageDavo = false;
-      this.davoSpriteSheet.src = url;
-      this.davoSpriteSheet.onload = () => { this.davoSpritesLoaded = true; };
-      this.davoSpriteSheet.onerror = () => { this.davoSpritesLoaded = false; };
-    } else if (type === 'single_davo') {
-      if (!url) {
-        this.davoSpritesLoaded = false;
-        this.isSingleImageDavo = false;
-        return;
-      }
-      this.isSingleImageDavo = true;
-      this.davoSpriteSheet.src = url;
-      this.davoSpriteSheet.onload = () => { this.davoSpritesLoaded = true; };
-      this.davoSpriteSheet.onerror = () => { this.davoSpritesLoaded = false; };
     }
   }
 
@@ -423,6 +542,11 @@ export class GameEngine {
       if (Math.random() < 0.3) this.spawnParticle(this.player.pos, { x: (Math.random() - 0.5) * 50, y: (Math.random() - 0.5) * 50 }, '#f1c40f', 4, 0.4);
     }
 
+    if (this.buffs.invincibility > 0) {
+      this.buffs.invincibility -= dt;
+      if (Math.random() < 0.3) this.spawnParticle(this.player.pos, { x: (Math.random() - 0.5) * 60, y: (Math.random() - 0.5) * 60 }, '#3498db', 4, 0.4);
+    }
+
     if (this.player.isMoving) {
       this.player.frame += dt * 10;
       if (Math.abs(dx) > Math.abs(dy)) {
@@ -455,6 +579,7 @@ export class GameEngine {
     }
     if (nearestEnemy) {
       const angle = Math.atan2(nearestEnemy.pos.y - this.player.pos.y, nearestEnemy.pos.x - this.player.pos.x);
+      this.playSound(sfxAttack, 0.2);
       this.projectiles.push({
         id: this.nextId++, pos: { x: this.player.pos.x, y: this.player.pos.y },
         vel: { x: Math.cos(angle) * weapon.speed, y: Math.sin(angle) * weapon.speed },
@@ -472,6 +597,7 @@ export class GameEngine {
     };
     const dir = dirMap[this.player.facing] || { x: 0, y: 1 };
     
+    this.playSound(sfxAttack, 0.1);
     this.projectiles.push({
       id: this.nextId++,
       pos: { x: this.player.pos.x, y: this.player.pos.y },
@@ -555,12 +681,19 @@ export class GameEngine {
       const angle = Math.atan2(this.player.pos.y - enemy.pos.y, this.player.pos.x - enemy.pos.x);
       enemy.pos.x += Math.cos(angle) * enemy.speed * dt; enemy.pos.y += Math.sin(angle) * enemy.speed * dt;
       if (this.getDist(this.player.pos, enemy.pos) < this.player.radius + enemy.radius) {
-        this.player.hp -= enemy.damage * dt; this.updateStats();
-        if (this.player.hp <= 0) { 
-          this.state = 'gameover'; 
-          this.callbacks.onStateChange(this.state); 
-          // Keep BGM playing for game over screen (dashboard stage)
-          return; 
+        if (this.buffs.invincibility <= 0) {
+          this.player.hp -= enemy.damage * dt; this.updateStats();
+          this.hitSoundTimer -= dt;
+          if (this.hitSoundTimer <= 0) {
+            this.playSound(sfxHit, 0.4);
+            this.hitSoundTimer = 0.5;
+          }
+          if (this.player.hp <= 0) { 
+            this.state = 'gameover'; 
+            this.callbacks.onStateChange(this.state); 
+            // Keep BGM playing for game over screen (dashboard stage)
+            return; 
+          }
         }
       }
     }
@@ -624,6 +757,23 @@ export class GameEngine {
               }
             }
             for (let k = 0; k < 30; k++) this.spawnParticle(this.player.pos, { x: (Math.random() - 0.5) * 500, y: (Math.random() - 0.5) * 500 }, '#e67e22', 10, 0.8);
+          } else if (c.type === 'dyno') {
+            // Clear ALL enemies within a larger radius
+            for (let j = this.enemies.length - 1; j >= 0; j--) {
+              const enemy = this.enemies[j];
+              if (this.getDist(this.player.pos, enemy.pos) < 800) {
+                enemy.hp = 0;
+                this.killEnemy(enemy);
+                this.enemies.splice(j, 1);
+              }
+            }
+            for (let k = 0; k < 50; k++) this.spawnParticle(this.player.pos, { x: (Math.random() - 0.5) * 800, y: (Math.random() - 0.5) * 800 }, '#ff4500', 12, 1.0);
+          } else if (c.type === 'self_rescue') {
+            this.buffs.invincibility = 8; // 8 seconds invincibility
+            for (let k = 0; k < 15; k++) this.spawnParticle(this.player.pos, { x: (Math.random() - 0.5) * 100, y: (Math.random() - 0.5) * 100 }, '#3498db', 6, 0.6);
+          } else if (c.type === 'gumboots') {
+            this.buffs.speedBoost = 12; // 12 seconds speed boost
+            for (let k = 0; k < 15; k++) this.spawnParticle(this.player.pos, { x: (Math.random() - 0.5) * 100, y: (Math.random() - 0.5) * 100 }, '#2ecc71', 6, 0.6);
           } else if (c.type === 'mystery_box') {
             const upgrades = this.generateUpgrades();
             const randomUpgrade = upgrades[Math.floor(Math.random() * upgrades.length)];
@@ -632,6 +782,10 @@ export class GameEngine {
           } else {
             this.player.xp += c.value;
             this.player.gems += c.value;
+            this.playSound(sfxGem, 0.2);
+          }
+          if (c.type !== 'gem_blue' && c.type !== 'gem_green') {
+            this.playSound(sfxItem, 0.4);
           }
           this.collectibles.splice(i, 1); this.checkLevelUp(); this.updateStats();
         }
@@ -696,11 +850,14 @@ export class GameEngine {
       const pos = { x: this.player.pos.x + Math.cos(angle) * dist, y: this.player.pos.y + Math.sin(angle) * dist };
       
       const rand = Math.random();
-      let type: 'beer' | 'coffee' | 'magnet' | 'dynamite' | 'mystery_box' = 'beer';
-      if (rand > 0.9) type = 'mystery_box';
-      else if (rand > 0.7) type = 'dynamite';
-      else if (rand > 0.5) type = 'magnet';
-      else if (rand > 0.25) type = 'coffee';
+      let type: 'beer' | 'coffee' | 'magnet' | 'dynamite' | 'mystery_box' | 'dyno' | 'self_rescue' | 'gumboots' = 'beer';
+      if (rand > 0.95) type = 'mystery_box';
+      else if (rand > 0.85) type = 'dyno';
+      else if (rand > 0.75) type = 'self_rescue';
+      else if (rand > 0.65) type = 'gumboots';
+      else if (rand > 0.5) type = 'dynamite';
+      else if (rand > 0.35) type = 'magnet';
+      else if (rand > 0.2) type = 'coffee';
       
       this.collectibles.push({ id: this.nextId++, pos, type, value: 0, radius: 20 });
     }
@@ -717,9 +874,9 @@ export class GameEngine {
       if (Math.random() < 0.5) {
         this.collectibles.push({ id: this.nextId++, pos: { ...enemy.pos }, type: 'mystery_box', value: 0, radius: 20 });
       }
-    } else if (rand < 0.01) {
-      // 1% chance for special item from regular enemy
-      const types: ('beer' | 'coffee' | 'magnet' | 'dynamite')[] = ['beer', 'coffee', 'magnet', 'dynamite'];
+    } else if (rand < 0.02) {
+      // 2% chance for special item from regular enemy
+      const types: ('beer' | 'coffee' | 'magnet' | 'dynamite' | 'dyno' | 'self_rescue' | 'gumboots')[] = ['beer', 'coffee', 'magnet', 'dynamite', 'dyno', 'self_rescue', 'gumboots'];
       const type = types[Math.floor(Math.random() * types.length)];
       this.collectibles.push({ id: this.nextId++, pos: { ...enemy.pos }, type, value: 0, radius: 20 });
     } else if (rand < 0.05) {
@@ -727,12 +884,14 @@ export class GameEngine {
     } else {
       this.collectibles.push({ id: this.nextId++, pos: { ...enemy.pos }, type: (enemy.type === 'enemy5' || enemy.type === 'enemy6') ? 'gem_green' : 'gem_blue', value: (enemy.type === 'enemy5' || enemy.type === 'enemy6') ? 5 : 1, radius: 10 });
     }
+    this.playSound(sfxDeath, 0.15);
     for (let k = 0; k < 5; k++) this.spawnParticle(enemy.pos, { x: (Math.random() - 0.5) * 100, y: (Math.random() - 0.5) * 100 }, '#555', Math.random() * 4 + 2, 0.5);
   }
 
   checkLevelUp() {
     if (this.player.xp >= this.player.xpToNext) {
       this.player.xp -= this.player.xpToNext; this.player.level++; this.player.xpToNext = Math.floor(this.player.xpToNext * 1.5);
+      this.playSound(sfxLevelUp, 0.6);
       this.state = 'levelup'; this.callbacks.onStateChange(this.state); this.pause();
       this.callbacks.onLevelUp(this.generateUpgrades());
     }
@@ -789,13 +948,14 @@ export class GameEngine {
   }
 
   drawDavoSprite(x: number, y: number, scale: number = 1) {
-    if (!this.davoSpritesLoaded) return false;
+    const charImg = this.characterImages[this.selectedCharacter.id];
+    if (!charImg || !this.charactersLoaded[this.selectedCharacter.id]) return false;
     
     if (this.isSingleImageDavo) {
       const bob = this.player.isMoving ? Math.sin(this.player.frame * 2) * 5 : 0;
       const maxDim = 128 * scale;
-      const imgW = this.davoSpriteSheet.width;
-      const imgH = this.davoSpriteSheet.height;
+      const imgW = charImg.width;
+      const imgH = charImg.height;
       const aspect = imgW / imgH;
       
       let drawW = maxDim;
@@ -810,56 +970,30 @@ export class GameEngine {
       this.ctx.save();
       this.ctx.translate(x, y + bob);
       
+      if (this.buffs.invincibility > 0) {
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, this.player.radius + 5, 0, Math.PI * 2);
+        this.ctx.strokeStyle = '#3498db';
+        this.ctx.lineWidth = 2;
+        this.ctx.setLineDash([5, 5]);
+        this.ctx.lineDashOffset = -this.time * 20;
+        this.ctx.stroke();
+        this.ctx.setLineDash([]);
+      }
+
       if (this.player.hp <= 0) {
         this.ctx.rotate(Math.PI / 2); // Lie down if dead
       } else if (this.player.facing === 'left') {
         this.ctx.scale(-1, 1); // Flip horizontally
       }
       
-      this.ctx.drawImage(this.davoSpriteSheet, -drawW / 2, -drawH / 2, drawW, drawH);
+      this.ctx.drawImage(charImg, -drawW / 2, -drawH / 2, drawW, drawH);
       this.ctx.restore();
       return true;
     }
 
-    // The sprite sheet has 10 columns and 5 rows.
-    const cols = 10;
-    const rows = 5;
-    const cellW = this.davoSpriteSheet.width / cols;
-    const cellH = this.davoSpriteSheet.height / rows;
-    
-    let col = 0;
-    let row = 0;
-    
-    // Map facing direction to row index
-    // Row 0: Down, Row 1: Right, Row 2: Left, Row 3: Up
-    const dirMap: Record<string, number> = { 'down': 0, 'right': 1, 'left': 2, 'up': 3 };
-    const dirRow = dirMap[this.player.facing] || 0;
-    
-    if (this.player.hp <= 0) {
-      // Damage and Death (row 4, col 8 and 9)
-      col = 9; // Dead frame (lying down)
-      row = 4;
-    } else if (this.player.isAttacking) {
-      // Attack block: cols 4 to 7
-      const frame = Math.floor(this.player.frame) % 4;
-      col = 4 + frame;
-      row = dirRow;
-    } else if (this.player.isMoving) {
-      // Walking block: cols 0 to 3
-      const frame = Math.floor(this.player.frame) % 4;
-      col = frame;
-      row = dirRow;
-    } else {
-      // Idle block: cols 8 to 9
-      const frame = Math.floor(this.player.frame) % 2;
-      col = 8 + frame;
-      row = dirRow;
-    }
-    
-    const sx = col * cellW;
-    const sy = row * cellH;
-    
-    this.ctx.drawImage(this.davoSpriteSheet, sx, sy, cellW, cellH, x - (cellW * scale) / 2, y - (cellH * scale) / 2, cellW * scale, cellH * scale);
+    // The sprite sheet logic is deprecated as all characters are currently single images.
+    // If we want to support sprite sheets again, we would need to know the dimensions per character.
     return true;
   }
 
@@ -959,6 +1093,24 @@ export class GameEngine {
         if (this.pickLoaded) {
           const scale = 0.3;
           ctx.drawImage(this.pickImage, -this.pickImage.width * scale / 2, -this.pickImage.height * scale / 2, this.pickImage.width * scale, this.pickImage.height * scale);
+          drawn = true;
+        }
+      } else if (c.type === 'dyno') {
+        if (this.dynoLoaded) {
+          const scale = 0.12;
+          ctx.drawImage(this.dynoImage, -this.dynoImage.width * scale / 2, -this.dynoImage.height * scale / 2, this.dynoImage.width * scale, this.dynoImage.height * scale);
+          drawn = true;
+        }
+      } else if (c.type === 'self_rescue') {
+        if (this.selfRescueLoaded) {
+          const scale = 0.12;
+          ctx.drawImage(this.selfRescueImage, -this.selfRescueImage.width * scale / 2, -this.selfRescueImage.height * scale / 2, this.selfRescueImage.width * scale, this.selfRescueImage.height * scale);
+          drawn = true;
+        }
+      } else if (c.type === 'gumboots') {
+        if (this.gumbootsLoaded) {
+          const scale = 0.12;
+          ctx.drawImage(this.gumbootsImage, -this.gumbootsImage.width * scale / 2, -this.gumbootsImage.height * scale / 2, this.gumbootsImage.width * scale, this.gumbootsImage.height * scale);
           drawn = true;
         }
       }

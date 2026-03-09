@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { GameEngine, GameState, UpgradeOption } from './game/Engine';
+import { GameEngine, GameState, UpgradeOption, CHARACTERS, Character } from './game/Engine';
 import { Heart, Zap, Shield, FastForward, Droplet, ArrowRight, Maximize, RotateCw, Wind, Coffee, Pickaxe, Cone, PieChart, RotateCcw, Pause, Play, CircleDollarSign, Plus, Check, Volume2, VolumeX } from 'lucide-react';
 
 const daveImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772965522/Dave_the_miner_akwikr.png';
@@ -34,22 +34,15 @@ interface CustomCharacter {
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<GameEngine | null>(null);
+  const lastClickTime = useRef<number>(0);
+  const lastClickedChar = useRef<string | null>(null);
 
   const [gameState, setGameState] = useState<GameState>('menu');
   const [stats, setStats] = useState({ hp: 100, maxHp: 100, level: 1, xp: 0, xpToNext: 30, time: 0, gems: 0, pies: 0 });
   const [upgrades, setUpgrades] = useState<UpgradeOption[]>([]);
 
-  const [characters, setCharacters] = useState<CustomCharacter[]>([
-    { id: 'dave', name: 'Dave the Miner', url: daveImg },
-    { id: 'bigkev', name: 'Big Kev', url: bigKevImg },
-    { id: 'kev', name: 'Kev', url: kevImg },
-    { id: 'shazza', name: 'Shazza the Cook', url: shazzaImg },
-    { id: 'steve', name: 'Steve the Safety Officer', url: steveImg },
-    { id: 'miner1', name: 'Tough Sheila', url: '/miner-1.png' },
-    { id: 'miner2', name: 'Old Mate', url: '/miner-2.png' },
-    { id: 'miner3', name: 'Muscular Gazza', url: '/miner-3.png' },
-  ]);
-  const [selectedCharacterId, setSelectedCharacterId] = useState<string>('dave');
+  const [characters, setCharacters] = useState<Character[]>(CHARACTERS);
+  const [selectedCharacterId, setSelectedCharacterId] = useState<string>(CHARACTERS[0].id);
   const [isBgmEnabled, setIsBgmEnabled] = useState(true);
   const [bgmVolume, setBgmVolume] = useState(0.5);
 
@@ -81,12 +74,10 @@ export default function App() {
     };
   }, []);
 
-  const startGame = () => {
-    const selected = characters.find(c => c.id === selectedCharacterId);
-    if (selected) {
-      engineRef.current?.setCustomSpriteSheet('single_davo', selected.url);
-    }
-    engineRef.current?.start(selectedCharacterId);
+  const startGame = (id?: string) => {
+    const charId = id || selectedCharacterId;
+    engineRef.current?.selectCharacter(charId);
+    engineRef.current?.start(charId);
   };
 
   const selectUpgrade = (id: string) => {
@@ -97,9 +88,17 @@ export default function App() {
     const file = e.target.files?.[0];
     if (file) {
       const url = URL.createObjectURL(file);
-      const newChar = { id: Date.now().toString(), name: `Miner ${characters.length}`, url };
+      const newChar: Character = { 
+        id: Date.now().toString(), 
+        name: `Miner ${characters.length}`, 
+        img: url,
+        description: 'A custom miner.',
+        stats: { hp: 100, speed: 200, damageMultiplier: 1 }
+      };
       setCharacters(prev => [...prev, newChar]);
       setSelectedCharacterId(newChar.id);
+      // We need to tell the engine about this new character image
+      engineRef.current?.addCustomCharacter(newChar);
     }
   };
 
@@ -138,7 +137,7 @@ export default function App() {
                   </div>
                 </div>
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-20 h-20 bg-[#5C3A21] rounded-full border-4 border-[#2D1A11] overflow-hidden flex items-center justify-center shadow-lg z-10">
-                  <img src={characters.find(c => c.id === selectedCharacterId)?.url} alt="Character" className="w-full h-full object-contain bg-[#4A4A4A]" />
+                  <img src={characters.find(c => c.id === selectedCharacterId)?.img} alt="Character" className="w-full h-full object-contain bg-[#4A4A4A]" />
                 </div>
               </div>
               <div className="flex items-center bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] border-4 border-[#2D1A11] rounded-xl px-4 h-12 shadow-lg">
@@ -188,7 +187,7 @@ export default function App() {
               {/* Portrait & HP */}
               <div className="flex items-center">
                 <div className="relative w-14 h-14 bg-[#5C3A21] rounded-full border-2 border-[#2D1A11] overflow-hidden shadow-lg">
-                  <img src={characters.find(c => c.id === selectedCharacterId)?.url} alt="Char" className="w-full h-full object-contain" />
+                  <img src={characters.find(c => c.id === selectedCharacterId)?.img} alt="Char" className="w-full h-full object-contain" />
                 </div>
                 <div className="ml-1.5 w-24 h-3.5 bg-[#4A2F1D] rounded-full border-2 border-[#1A0F09] overflow-hidden shadow-inner">
                   <div className="h-full bg-[#e74c3c]" style={{ width: `${(stats.hp / stats.maxHp) * 100}%` }} />
@@ -288,16 +287,45 @@ export default function App() {
               {characters.map(char => (
                 <div key={char.id} className="flex flex-col items-center gap-3 flex-shrink-0 snap-center">
                   <div 
-                    onClick={() => setSelectedCharacterId(char.id)}
+                    onClick={() => {
+                      const now = Date.now();
+                      if (lastClickedChar.current === char.id && now - lastClickTime.current < 400) {
+                        setSelectedCharacterId(char.id);
+                        startGame(char.id);
+                      } else {
+                        setSelectedCharacterId(char.id);
+                        lastClickedChar.current = char.id;
+                        lastClickTime.current = now;
+                      }
+                    }}
                     className={`relative w-32 h-32 md:w-40 md:h-40 rounded-2xl border-4 cursor-pointer transition-all overflow-hidden bg-[#4A4A4A] flex items-center justify-center shadow-[0_8px_16px_rgba(0,0,0,0.5)] ${
                       selectedCharacterId === char.id ? 'border-[#F4D0A4] scale-110 shadow-[0_0_25px_rgba(244,208,164,0.6)]' : 'border-[#2D1A11] hover:border-[#8B5A43]'
                     }`}
                   >
-                    <img src={char.url} alt={char.name} className="w-full h-full object-contain p-2" />
+                    <img src={char.img} alt={char.name} className="w-full h-full object-contain p-2" />
+                    {selectedCharacterId === char.id && (
+                      <div className="absolute bottom-0 left-0 w-full bg-[#2D1A11]/80 py-1 text-center">
+                        <span className="text-[10px] text-[#F4D0A4] font-bold uppercase">Selected</span>
+                      </div>
+                    )}
                   </div>
                   <span className="text-[#F4D0A4] text-sm md:text-base font-bold uppercase text-center w-32 md:w-40 leading-tight" style={{ WebkitTextStroke: '1px #2D1A11', textShadow: '0 2px 2px black' }}>
                     {char.name}
                   </span>
+                  <div className="flex gap-2 mt-1">
+                    <div className="flex items-center gap-1">
+                      <Heart className="w-3 h-3 text-red-500" />
+                      <span className="text-[10px] text-white font-bold">{char.stats.hp}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Zap className="w-3 h-3 text-yellow-500" />
+                      <span className="text-[10px] text-white font-bold">x{char.stats.damageMultiplier}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Wind className="w-3 h-3 text-teal-500" />
+                      <span className="text-[10px] text-white font-bold">{char.stats.speed}</span>
+                    </div>
+                  </div>
                 </div>
               ))}
               
