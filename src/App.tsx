@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GameEngine, GameState, UpgradeOption, CHARACTERS, Character } from './game/Engine';
-import { Heart, Zap, Shield, FastForward, Droplet, ArrowRight, Maximize, RotateCw, Wind, Coffee, Pickaxe, Cone, PieChart, RotateCcw, Pause, Play, CircleDollarSign, Plus, Check, Volume2, VolumeX } from 'lucide-react';
+import { Heart, Zap, Shield, FastForward, Droplet, ArrowRight, Maximize, RotateCw, Wind, Coffee, Pickaxe, Cone, PieChart, RotateCcw, Pause, Play, CircleDollarSign, Plus, Check, Volume2, VolumeX, Trophy, Loader2 } from 'lucide-react';
 
 const daveImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772965522/Dave_the_miner_akwikr.png';
 const bigKevImg = 'https://res.cloudinary.com/dhc60qvv3/image/upload/v1772965523/big_kev_cyuxkl.png';
@@ -46,6 +46,60 @@ export default function App() {
   const [isBgmEnabled, setIsBgmEnabled] = useState(true);
   const [bgmVolume, setBgmVolume] = useState(0.5);
 
+  // Leaderboard state
+  const [playerName, setPlayerName] = useState('');
+  const [isSubmittingScore, setIsSubmittingScore] = useState(false);
+  const [scoreSubmitted, setScoreSubmitted] = useState(false);
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+
+  const fetchLeaderboard = async () => {
+    try {
+      const res = await fetch('/api/leaderboard');
+      if (res.ok) {
+        const data = await res.json();
+        setLeaderboard(data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch leaderboard", e);
+    }
+  };
+
+  const submitScore = async () => {
+    if (!playerName.trim()) return;
+    setIsSubmittingScore(true);
+    try {
+      // Calculate a score based on level, gems, and time survived
+      const score = (stats.level * 1000) + (stats.gems * 10) + Math.floor(stats.time * 5);
+      
+      const res = await fetch('/api/leaderboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: playerName.trim(),
+          score: score,
+          characterId: selectedCharacterId
+        })
+      });
+      
+      if (res.ok) {
+        setScoreSubmitted(true);
+        fetchLeaderboard();
+        setShowLeaderboard(true);
+      }
+    } catch (e) {
+      console.error("Failed to submit score", e);
+    } finally {
+      setIsSubmittingScore(false);
+    }
+  };
+
+  useEffect(() => {
+    if (gameState === 'menu') {
+      fetchLeaderboard();
+    }
+  }, [gameState]);
+
   useEffect(() => {
     if (!canvasRef.current) return;
 
@@ -76,6 +130,8 @@ export default function App() {
 
   const startGame = (id?: string) => {
     const charId = id || selectedCharacterId;
+    setScoreSubmitted(false);
+    setShowLeaderboard(false);
     engineRef.current?.selectCharacter(charId);
     engineRef.current?.start(charId);
   };
@@ -447,26 +503,92 @@ export default function App() {
 
       {/* Game Over */}
       {gameState === 'gameover' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm z-50">
-          <div className="relative bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] p-8 rounded-2xl border-4 border-[#2D1A11] text-center max-w-md w-full shadow-[0_10px_20px_rgba(0,0,0,0.6)]">
+        <div className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm z-50 p-4">
+          <div className="relative bg-gradient-to-b from-[#8B5A43] to-[#5C3A21] p-6 md:p-8 rounded-2xl border-4 border-[#2D1A11] text-center max-w-md w-full shadow-[0_10px_20px_rgba(0,0,0,0.6)]">
             <div className="absolute top-2 left-2 w-3 h-3 rounded-full bg-[#4A2F1D] border-2 border-[#1A0F09] shadow-inner"></div>
             <div className="absolute top-2 right-2 w-3 h-3 rounded-full bg-[#4A2F1D] border-2 border-[#1A0F09] shadow-inner"></div>
             <div className="absolute bottom-2 left-2 w-3 h-3 rounded-full bg-[#4A2F1D] border-2 border-[#1A0F09] shadow-inner"></div>
             <div className="absolute bottom-2 right-2 w-3 h-3 rounded-full bg-[#4A2F1D] border-2 border-[#1A0F09] shadow-inner"></div>
 
-            <h2 className="text-5xl font-black text-[#e74c3c] mb-2 uppercase tracking-tighter" style={{ WebkitTextStroke: '2px #2D1A11', textShadow: '0 4px 4px rgba(0,0,0,0.5)' }}>
+            <h2 className="text-4xl md:text-5xl font-black text-[#e74c3c] mb-2 uppercase tracking-tighter" style={{ WebkitTextStroke: '2px #2D1A11', textShadow: '0 4px 4px rgba(0,0,0,0.5)' }}>
               Shift Over
             </h2>
-            <p className="text-[#F4D0A4] mb-6 text-lg font-bold" style={{ WebkitTextStroke: '0.5px #2D1A11' }}>
+            <p className="text-[#F4D0A4] mb-4 text-base md:text-lg font-bold" style={{ WebkitTextStroke: '0.5px #2D1A11' }}>
               You survived and reached Level {stats.level}.
             </p>
-            <button 
-              onClick={startGame}
-              className="w-full py-4 bg-gradient-to-b from-[#e74c3c] to-[#c0392b] hover:from-[#ff6b6b] hover:to-[#e74c3c] text-[#F4D0A4] font-black rounded-xl text-xl uppercase tracking-widest transition-colors shadow-lg border-4 border-[#2D1A11] pointer-events-auto"
-              style={{ WebkitTextStroke: '1px #2D1A11' }}
-            >
-              START NEXT SHIFT
-            </button>
+            
+            <div className="bg-[#2D1A11] rounded-xl border-2 border-[#1A0F09] p-4 mb-6">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-[#A88A72] font-bold">Final Score:</span>
+                <span className="text-[#2ecc71] font-black text-2xl">
+                  {((stats.level * 1000) + (stats.gems * 10) + Math.floor(stats.time * 5)).toLocaleString()}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-[#A88A72]">Time Survived:</span>
+                <span className="text-[#F4D0A4] font-bold">{Math.floor(stats.time / 60)}:{(Math.floor(stats.time) % 60).toString().padStart(2, '0')}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-[#A88A72]">Gems Collected:</span>
+                <span className="text-[#3498db] font-bold">{stats.gems}</span>
+              </div>
+            </div>
+
+            {!scoreSubmitted && !showLeaderboard ? (
+              <div className="mb-6 space-y-3">
+                <input 
+                  type="text" 
+                  value={playerName}
+                  onChange={(e) => setPlayerName(e.target.value)}
+                  placeholder="Enter your name"
+                  maxLength={15}
+                  className="w-full bg-[#1A0F09] border-2 border-[#4A2F1D] rounded-lg px-4 py-3 text-[#F4D0A4] font-bold outline-none focus:border-[#F4D0A4] text-center uppercase"
+                />
+                <button 
+                  onClick={submitScore}
+                  disabled={!playerName.trim() || isSubmittingScore}
+                  className="w-full py-3 bg-gradient-to-b from-[#3498db] to-[#2980b9] hover:from-[#5dade2] hover:to-[#3498db] disabled:opacity-50 disabled:cursor-not-allowed text-white font-black rounded-xl text-lg uppercase tracking-widest transition-colors shadow-lg border-4 border-[#2D1A11] flex items-center justify-center gap-2"
+                  style={{ WebkitTextStroke: '1px #2D1A11' }}
+                >
+                  {isSubmittingScore ? <Loader2 className="animate-spin" /> : <Trophy size={20} />}
+                  SUBMIT SCORE
+                </button>
+              </div>
+            ) : showLeaderboard ? (
+              <div className="mb-6 bg-[#2D1A11] rounded-xl border-2 border-[#1A0F09] p-3 max-h-48 overflow-y-auto custom-scrollbar">
+                <h3 className="text-[#F4D0A4] font-black mb-2 text-center border-b border-[#4A2F1D] pb-1">TOP MINERS</h3>
+                {leaderboard.map((entry, index) => (
+                  <div key={index} className={`flex justify-between items-center p-1 ${entry.name === playerName.trim() ? 'bg-[#4A2F1D] rounded' : ''}`}>
+                    <span className="text-[#F4D0A4] font-bold text-sm truncate max-w-[120px]">
+                      {index + 1}. {entry.name}
+                    </span>
+                    <span className="text-[#2ecc71] font-black text-sm">
+                      {entry.score.toLocaleString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            <div className="flex gap-3">
+              <button 
+                onClick={() => {
+                  setGameState('menu');
+                  fetchLeaderboard();
+                }}
+                className="flex-1 py-3 bg-gradient-to-b from-[#7f8c8d] to-[#95a5a6] hover:from-[#95a5a6] hover:to-[#bdc3c7] text-white font-black rounded-xl text-lg uppercase tracking-widest transition-colors shadow-lg border-4 border-[#2D1A11]"
+                style={{ WebkitTextStroke: '1px #2D1A11' }}
+              >
+                MENU
+              </button>
+              <button 
+                onClick={startGame}
+                className="flex-1 py-3 bg-gradient-to-b from-[#e74c3c] to-[#c0392b] hover:from-[#ff6b6b] hover:to-[#e74c3c] text-[#F4D0A4] font-black rounded-xl text-lg uppercase tracking-widest transition-colors shadow-lg border-4 border-[#2D1A11]"
+                style={{ WebkitTextStroke: '1px #2D1A11' }}
+              >
+                RETRY
+              </button>
+            </div>
           </div>
         </div>
       )}

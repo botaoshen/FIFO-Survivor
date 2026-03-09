@@ -4,6 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import multer from "multer";
 import fs from "fs";
+import { kv } from "@vercel/kv";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -47,6 +48,53 @@ async function startServer() {
 
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
+  });
+
+  // Leaderboard APIs
+  app.use(express.json());
+
+  app.post("/api/leaderboard", async (req, res) => {
+    try {
+      const { name, score, characterId } = req.body;
+      if (!name || typeof score !== 'number') {
+        return res.status(400).json({ error: "Invalid name or score" });
+      }
+
+      // We use a sorted set in Redis. The key is 'leaderboard'
+      // The member is a JSON string of the player data so we can store extra info
+      // But for ZADD, the score is what it sorts by.
+      // To handle multiple entries with the same name, we append a timestamp to make the member unique
+      const memberId = `${name}_${Date.now()}`;
+      const memberData = JSON.stringify({ name, score, characterId, date: new Date().toISOString() });
+      
+      await kv.zadd('leaderboard', { score, member: memberData });
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Leaderboard submit error:", error);
+      res.status(500).json({ error: "Failed to submit score" });
+    }
+  });
+
+  app.get("/api/leaderboard", async (req, res) => {
+    try {
+      // Get top 10 scores, descending order (highest first)
+      const topScores = await kv.zrange('leaderboard', 0, 9, { rev: true, withScores: false });
+      
+      // Parse the JSON strings back into objects
+      const parsedScores = topScores.map((member: string) => {
+        try {
+          return JSON.parse(member);
+        } catch (e) {
+          return { name: "Unknown", score: 0 };
+        }
+      });
+
+      res.json(parsedScores);
+    } catch (error: any) {
+      console.error("Leaderboard fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch leaderboard" });
+    }
   });
 
   app.get("/api/proxy", async (req, res) => {
