@@ -23,6 +23,61 @@ app.use(express.static(path.join(process.cwd(), "public")));
 // Serve static files from public/uploads
 app.use("/uploads", express.static(uploadDir));
 
+// Dynamic Icon Generation
+app.get("/icon.png", (req, res) => {
+  const style = req.query.style || '1';
+  
+  // We'll generate a simple SVG icon based on the style parameter
+  // and return it as an image
+  let svgContent = '';
+  
+  if (style === '1') {
+    // Style 1: Mining theme (Orange/Dark)
+    svgContent = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+        <rect width="512" height="512" rx="112" fill="#1a1a1a"/>
+        <rect x="32" y="32" width="448" height="448" rx="80" fill="#2d2d2d"/>
+        <path d="M256 120 L380 256 L256 392 L132 256 Z" fill="#f97316"/>
+        <path d="M256 160 L330 256 L256 352 L182 256 Z" fill="#fdba74"/>
+        <text x="256" y="440" font-family="Arial, sans-serif" font-weight="bold" font-size="64" fill="#f97316" text-anchor="middle">FIFO</text>
+      </svg>
+    `;
+  } else if (style === '2') {
+    // Style 2: Australian theme (Green/Gold)
+    svgContent = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+        <rect width="512" height="512" rx="112" fill="#00843D"/>
+        <circle cx="256" cy="256" r="180" fill="#FFCD00"/>
+        <path d="M256 120 L290 200 L380 210 L310 270 L330 360 L256 310 L182 360 L202 270 L132 210 L222 200 Z" fill="#00843D"/>
+      </svg>
+    `;
+  } else if (style === '3') {
+    // Style 3: Pixel Art theme (Retro)
+    svgContent = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+        <rect width="512" height="512" rx="112" fill="#4338ca"/>
+        <rect x="128" y="128" width="256" height="256" fill="#1e1b4b"/>
+        <rect x="160" y="160" width="64" height="64" fill="#a855f7"/>
+        <rect x="288" y="160" width="64" height="64" fill="#a855f7"/>
+        <rect x="160" y="288" width="192" height="64" fill="#a855f7"/>
+        <rect x="128" y="256" width="32" height="32" fill="#a855f7"/>
+        <rect x="352" y="256" width="32" height="32" fill="#a855f7"/>
+      </svg>
+    `;
+  } else {
+    // Default fallback
+    svgContent = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+        <rect width="512" height="512" rx="112" fill="#3b82f6"/>
+        <text x="256" y="290" font-family="Arial, sans-serif" font-weight="bold" font-size="200" fill="white" text-anchor="middle">F</text>
+      </svg>
+    `;
+  }
+
+  res.setHeader('Content-Type', 'image/svg+xml');
+  res.send(svgContent);
+});
+
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
