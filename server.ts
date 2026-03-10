@@ -3,7 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import multer from "multer";
 import fs from "fs";
-import { kv } from "@vercel/kv";
+import { createClient } from '@supabase/supabase-js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -53,38 +53,52 @@ app.use(express.json());
 
 app.post("/api/leaderboard", async (req, res) => {
   try {
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+      console.warn("Supabase credentials missing. Skipping leaderboard submit.");
+      return res.json({ success: true, warning: "Leaderboard not configured" });
+    }
+
+    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+
     const { name, score, characterId } = req.body;
     if (!name || typeof score !== 'number') {
       return res.status(400).json({ error: "Invalid name or score" });
     }
 
-    const memberData = JSON.stringify({ name, score, characterId, date: new Date().toISOString() });
+    const { error } = await supabase
+      .from('Leaderboard')
+      .insert([{ name, score, characterId }]);
     
-    await kv.zadd('leaderboard', { score, member: memberData });
+    if (error) throw error;
     
     res.json({ success: true });
   } catch (error: any) {
-    console.error("Leaderboard submit error:", error);
-    res.status(500).json({ error: "Failed to submit score" });
+    console.error("Leaderboard submit error:", error.message || JSON.stringify(error));
+    res.status(500).json({ error: error.message || "Failed to submit score" });
   }
 });
 
 app.get("/api/leaderboard", async (req, res) => {
   try {
-    const topScores = await kv.zrange('leaderboard', 0, 9, { rev: true, withScores: false });
-    
-    const parsedScores = topScores.map((member: string) => {
-      try {
-        return JSON.parse(member);
-      } catch (e) {
-        return { name: "Unknown", score: 0 };
-      }
-    });
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+      console.warn("Supabase credentials missing. Returning empty leaderboard.");
+      return res.json([]);
+    }
 
-    res.json(parsedScores);
+    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+
+    const { data, error } = await supabase
+      .from('Leaderboard')
+      .select('name, score, characterId')
+      .order('score', { ascending: false })
+      .limit(10);
+    
+    if (error) throw error;
+
+    res.json(data || []);
   } catch (error: any) {
-    console.error("Leaderboard fetch error:", error);
-    res.status(500).json({ error: "Failed to fetch leaderboard" });
+    console.error("Leaderboard fetch error:", error.message || JSON.stringify(error));
+    res.status(500).json({ error: error.message || "Failed to fetch leaderboard" });
   }
 });
 

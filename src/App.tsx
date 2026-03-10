@@ -128,8 +128,8 @@ export default function App() {
     };
   }, []);
 
-  const startGame = (id?: string) => {
-    const charId = id || selectedCharacterId;
+  const startGame = (id?: string | React.MouseEvent) => {
+    const charId = typeof id === 'string' ? id : selectedCharacterId;
     setScoreSubmitted(false);
     setShowLeaderboard(false);
     engineRef.current?.selectCharacter(charId);
