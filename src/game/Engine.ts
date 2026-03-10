@@ -183,6 +183,7 @@ export interface GameCallbacks {
 
 export class GameEngine {
   canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D; callbacks: GameCallbacks;
+  logicalWidth: number = 0; logicalHeight: number = 0; dpr: number = 1;
   lastTime: number = 0; animationId: number = 0; keys: { [key: string]: boolean } = {};
   state: GameState = 'menu';
 
@@ -480,7 +481,16 @@ export class GameEngine {
     }
   }
 
-  handleResize() { this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight; }
+  handleResize() { 
+    this.dpr = window.devicePixelRatio || 1;
+    this.logicalWidth = window.innerWidth; 
+    this.logicalHeight = window.innerHeight;
+    this.canvas.width = this.logicalWidth * this.dpr; 
+    this.canvas.height = this.logicalHeight * this.dpr; 
+    this.canvas.style.width = `${this.logicalWidth}px`;
+    this.canvas.style.height = `${this.logicalHeight}px`;
+    // We don't scale here, we scale in draw() to avoid cumulative scaling issues
+  }
 
   start(characterId: string = 'dave') {
     cancelAnimationFrame(this.animationId);
@@ -596,7 +606,7 @@ export class GameEngine {
     this.updatePlayer(dt); this.updateWeapons(dt); this.updateEnemies(dt);
     this.updateProjectiles(dt); this.updateCollectibles(dt); this.updateParticles(dt); this.spawnEnemies(dt);
     this.spawnSpecialItems(dt);
-    this.camera.x = this.player.pos.x - this.canvas.width / 2; this.camera.y = this.player.pos.y - this.canvas.height / 2;
+    this.camera.x = this.player.pos.x - this.logicalWidth / 2; this.camera.y = this.player.pos.y - this.logicalHeight / 2;
     
     // Shazza's Snack Time: Regenerates 1 HP per second
     if (this.player.characterId === 'shazza') {
@@ -976,7 +986,7 @@ export class GameEngine {
     if (this.bossSpawnTimer <= 0) {
       this.bossSpawnTimer = 60; // Reset boss timer
       const angle = Math.random() * Math.PI * 2;
-      const dist = Math.max(this.canvas.width, this.canvas.height) / 2 + 100;
+      const dist = Math.max(this.logicalWidth, this.logicalHeight) / 2 + 100;
       const pos = { x: this.player.pos.x + Math.cos(angle) * dist, y: this.player.pos.y + Math.sin(angle) * dist };
       const hp = 500 * this.difficultyMultiplier;
       this.enemies.push({ id: this.nextId++, pos, type: 'enemy7', hp, maxHp: hp, speed: 60, damage: 50 * this.difficultyMultiplier, radius: 50, knockback: { x: 0, y: 0 }, frame: Math.random() * 10 });
@@ -988,7 +998,7 @@ export class GameEngine {
       const numToSpawn = Math.floor(this.difficultyMultiplier);
       for (let i = 0; i < numToSpawn; i++) {
         const angle = Math.random() * Math.PI * 2;
-        const dist = Math.max(this.canvas.width, this.canvas.height) / 2 + 100;
+        const dist = Math.max(this.logicalWidth, this.logicalHeight) / 2 + 100;
         const pos = { x: this.player.pos.x + Math.cos(angle) * dist, y: this.player.pos.y + Math.sin(angle) * dist };
         const rand = Math.random();
         let type: 'enemy0' | 'enemy1' | 'enemy2' | 'enemy3' | 'enemy4' | 'enemy5' | 'enemy6' = 'enemy0';
@@ -1012,7 +1022,7 @@ export class GameEngine {
       this.specialItemSpawnTimer = 20 + Math.random() * 20; // Spawn every 20-40 seconds
       
       const angle = Math.random() * Math.PI * 2;
-      const dist = Math.max(this.canvas.width, this.canvas.height) / 2 + 200;
+      const dist = Math.max(this.logicalWidth, this.logicalHeight) / 2 + 200;
       const pos = { x: this.player.pos.x + Math.cos(angle) * dist, y: this.player.pos.y + Math.sin(angle) * dist };
       
       const rand = Math.random();
@@ -1164,7 +1174,11 @@ export class GameEngine {
   }
 
   draw() {
-    const { ctx, canvas, camera } = this;
+    const { ctx, canvas, camera, logicalWidth, logicalHeight, dpr } = this;
+    
+    ctx.save();
+    ctx.scale(dpr, dpr);
+    ctx.imageSmoothingEnabled = false;
     
     if (this.groundTextureLoaded && this.groundPattern) {
       const scale = 0.3; // Adjust this value to make the texture smaller or larger
@@ -1185,14 +1199,14 @@ export class GameEngine {
       ctx.fillRect(
         -scaledWidth, 
         -scaledHeight, 
-        canvas.width + scaledWidth * 2, 
-        canvas.height + scaledHeight * 2
+        logicalWidth + scaledWidth * 2, 
+        logicalHeight + scaledHeight * 2
       );
       ctx.restore();
     } else {
       // Background Pit fallback
       ctx.fillStyle = '#b34d36'; // Dirt color
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, logicalWidth, logicalHeight);
     }
     
     ctx.save();
@@ -1202,8 +1216,8 @@ export class GameEngine {
     for (const prop of this.props) {
       // Only draw if within screen bounds (culling)
       if (
-        prop.pos.x > camera.x - 200 && prop.pos.x < camera.x + canvas.width + 200 &&
-        prop.pos.y > camera.y - 200 && prop.pos.y < camera.y + canvas.height + 200
+        prop.pos.x > camera.x - 200 && prop.pos.x < camera.x + logicalWidth + 200 &&
+        prop.pos.y > camera.y - 200 && prop.pos.y < camera.y + logicalHeight + 200
       ) {
         if (this.propsLoaded[prop.type]) {
           const img = this.propImages[prop.type];
@@ -1224,8 +1238,8 @@ export class GameEngine {
     ctx.fillStyle = '#8a3324';
     ctx.beginPath();
     ctx.moveTo(camera.x, camera.y);
-    ctx.lineTo(camera.x + canvas.width, camera.y);
-    ctx.lineTo(camera.x + canvas.width, camera.y + 100);
+    ctx.lineTo(camera.x + logicalWidth, camera.y);
+    ctx.lineTo(camera.x + logicalWidth, camera.y + 100);
     ctx.lineTo(camera.x, camera.y + 100);
     ctx.fill();
     ctx.strokeStyle = '#6b2418';
@@ -1507,7 +1521,7 @@ export class GameEngine {
     // Draw Joystick
     if (this.touchActive) {
       ctx.save();
-      ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset to screen space
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // Reset to screen space but keep DPR scale
       
       const baseRadius = 60;
       const stickRadius = 30;
@@ -1536,5 +1550,8 @@ export class GameEngine {
       
       ctx.restore();
     }
+    
+    // Restore DPR scale
+    ctx.restore();
   }
 }
